@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Multi-Video Sync Player</title>
+<style>
+    body {
+        margin: 0;
+        background: black;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: white;
+    }
+
+    #controls {
+        display: flex;
+        gap: 10px;
+        padding: 10px;
+        background: #111;
+        justify-content: center;
+        width: 900px;
+    }
+
+    button {
+        background: purple;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 6px;
+    }
+
+    button:hover {
+        background: #b300b3;
+    }
+
+    /* FIXED 900x900 AREA */
+    #container {
+        width: 900px;
+        height: 900px;
+        display: grid;
+        gap: 5px;
+
+        /* 4 columns, 2 rows */
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+
+        /* IMPORTANT: keeps videos at the top */
+        align-content: start;
+
+        background: black;
+    }
+
+    video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+</style>
+</head>
+<body>
+
+<div id="controls">
+    <button id="addBtn">Add Videos</button>
+    <button id="playBtn">Play All</button>
+    <button id="pauseBtn">Pause All</button>
+    <button id="loopBtn">Loop All</button>
+</div>
+
+<div id="container"></div>
+
+<script>
+    let videoSources = [
+        "video1.mp4",
+        "video2.mp4",
+        "video3.mp4",
+        "video4.mp4",
+        "video5.mp4",
+        "video6.mp4",
+        "video7.mp4"
+    ];
+
+    const container = document.getElementById("container");
+
+    function rebuildGrid() {
+        container.innerHTML = "";
+
+        videoSources.forEach(src => {
+            const vid = document.createElement("video");
+            vid.src = src;
+            vid.autoplay = true;
+            vid.loop = true;
+            vid.muted = true;
+            vid.playsInline = true;
+            container.appendChild(vid);
+        });
+    }
+
+    rebuildGrid();
+
+    // Add Videos Button
+    document.getElementById("addBtn").onclick = () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "video/*";
+        input.multiple = true;
+
+        input.onchange = () => {
+            for (const file of input.files) {
+                const url = URL.createObjectURL(file);
+                videoSources.push(url);
+            }
+            rebuildGrid();
+        };
+
+        input.click();
+    };
+
+    // Play All Button
+    document.getElementById("playBtn").onclick = () => {
+        document.querySelectorAll("video").forEach(v => v.play());
+    };
+
+    // Pause All Button
+    document.getElementById("pauseBtn").onclick = () => {
+        document.querySelectorAll("video").forEach(v => v.pause());
+    };
+
+    // Loop All Button
+    document.getElementById("loopBtn").onclick = () => {
+        document.querySelectorAll("video").forEach(v => v.loop = true);
+    };
+</script>
+
+</body>
+</html>
