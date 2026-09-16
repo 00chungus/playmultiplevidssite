@@ -42,7 +42,7 @@
         background: #b300b3;
     }
 
-    /* RESPONSIVE VIDEO GRID */
+    /* FIXED VIDEO TILE HEIGHTS */
     #container {
         width: 100%;
         max-width: 900px;
@@ -52,15 +52,16 @@
         box-sizing: border-box;
         padding: 5px;
 
-        /* FORCE GRID TO START AT TOP */
         align-content: start;
-        justify-content: center;
     }
 
     /* Desktop: 4 columns */
     @media (min-width: 900px) {
         #container {
             grid-template-columns: repeat(4, 1fr);
+        }
+        video {
+            height: 200px;
         }
     }
 
@@ -69,12 +70,18 @@
         #container {
             grid-template-columns: repeat(3, 1fr);
         }
+        video {
+            height: 180px;
+        }
     }
 
     /* Mobile portrait: 2 columns */
     @media (max-width: 599px) {
         #container {
             grid-template-columns: repeat(2, 1fr);
+        }
+        video {
+            height: 160px;
         }
     }
 
@@ -83,12 +90,13 @@
         #container {
             grid-template-columns: repeat(3, 1fr);
         }
+        video {
+            height: 120px;
+        }
     }
 
     video {
         width: 100%;
-        height: auto;
-        aspect-ratio: 16 / 9;
         object-fit: cover;
         background: black;
         border-radius: 4px;
@@ -131,38 +139,4 @@
     document.getElementById("addBtn").onclick = () => {
         const input = document.createElement("input");
         input.type = "file";
-        input.accept = "video/*";
-        input.multiple = true;
-
-        input.onchange = () => {
-            for (const file of input.files) {
-                const url = URL.createObjectURL(file);
-                videoSources.push(url);
-            }
-            rebuildGrid();
-        };
-
-        input.click();
-    };
-
-    // Play All Button (sound fix)
-    document.getElementById("playBtn").onclick = () => {
-        document.querySelectorAll("video").forEach(v => {
-            v.muted = false;
-            v.play();
-        });
-    };
-
-    // Pause All Button
-    document.getElementById("pauseBtn").onclick = () => {
-        document.querySelectorAll("video").forEach(v => v.pause());
-    };
-
-    // Loop All Button
-    document.getElementById("loopBtn").onclick = () => {
-        document.querySelectorAll("video").forEach(v => v.loop = true);
-    };
-</script>
-
-</body>
-</html>
+        input.accept = "video
