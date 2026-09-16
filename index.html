@@ -23,6 +23,9 @@
         width: 100%;
         max-width: 900px;
         box-sizing: border-box;
+        position: sticky;
+        top: 0;
+        z-index: 10;
     }
 
     button {
@@ -48,6 +51,10 @@
         background: black;
         box-sizing: border-box;
         padding: 5px;
+
+        /* FORCE GRID TO START AT TOP */
+        align-content: start;
+        justify-content: center;
     }
 
     /* Desktop: 4 columns */
@@ -64,10 +71,17 @@
         }
     }
 
-    /* Mobile: 2 columns */
+    /* Mobile portrait: 2 columns */
     @media (max-width: 599px) {
         #container {
             grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    /* Mobile landscape: 3 columns */
+    @media (max-height: 450px) {
+        #container {
+            grid-template-columns: repeat(3, 1fr);
         }
     }
 
@@ -77,6 +91,7 @@
         aspect-ratio: 16 / 9;
         object-fit: cover;
         background: black;
+        border-radius: 4px;
     }
 </style>
 </head>
@@ -92,15 +107,7 @@
 <div id="container"></div>
 
 <script>
-    let videoSources = [
-        "video1.mp4",
-        "video2.mp4",
-        "video3.mp4",
-        "video4.mp4",
-        "video5.mp4",
-        "video6.mp4",
-        "video7.mp4"
-    ];
+    let videoSources = [];
 
     const container = document.getElementById("container");
 
@@ -111,7 +118,6 @@
             const vid = document.createElement("video");
             vid.src = src;
 
-            // Autoplay muted (required for iPhone)
             vid.autoplay = true;
             vid.loop = true;
             vid.muted = true;
@@ -120,8 +126,6 @@
             container.appendChild(vid);
         });
     }
-
-    rebuildGrid();
 
     // Add Videos Button
     document.getElementById("addBtn").onclick = () => {
