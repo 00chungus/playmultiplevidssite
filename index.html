@@ -11,7 +11,6 @@
         flex-direction: column;
         align-items: center;
         color: white;
-        overflow-x: hidden;
     }
 
     #controls {
@@ -20,12 +19,7 @@
         padding: 10px;
         background: #111;
         justify-content: center;
-        width: 100%;
-        max-width: 900px;
-        box-sizing: border-box;
-        position: sticky;
-        top: 0;
-        z-index: 10;
+        width: 900px;
     }
 
     button {
@@ -42,56 +36,25 @@
         background: #b300b3;
     }
 
-    /* RESPONSIVE VIDEO GRID */
+    /* FIXED 900x900 AREA */
     #container {
-        width: 100%;
-        max-width: 900px;
+        width: 900px;
+        height: 900px;
         display: grid;
         gap: 5px;
+        grid-template-columns: repeat(3, 1fr);
         background: black;
-        box-sizing: border-box;
-        padding: 5px;
-
-        /* FORCE GRID TO START AT TOP */
-        align-content: start;
-        justify-content: center;
+        overflow: hidden;
     }
 
-    /* Desktop: 4 columns */
-    @media (min-width: 900px) {
-        #container {
-            grid-template-columns: repeat(4, 1fr);
-        }
-    }
-
-    /* Medium screens: 3 columns */
-    @media (min-width: 600px) and (max-width: 899px) {
-        #container {
-            grid-template-columns: repeat(3, 1fr);
-        }
-    }
-
-    /* Mobile portrait: 2 columns */
-    @media (max-width: 599px) {
-        #container {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    /* Mobile landscape: 3 columns */
-    @media (max-height: 450px) {
-        #container {
-            grid-template-columns: repeat(3, 1fr);
-        }
+    .center-last {
+        grid-column: 2 / 3;
     }
 
     video {
         width: 100%;
-        height: auto;
-        aspect-ratio: 16 / 9;
+        height: 100%;
         object-fit: cover;
-        background: black;
-        border-radius: 4px;
     }
 </style>
 </head>
@@ -107,27 +70,39 @@
 <div id="container"></div>
 
 <script>
-    let videoSources = [];
+    let videoSources = [
+        "video1.mp4",
+        "video2.mp4",
+        "video3.mp4",
+        "video4.mp4",
+        "video5.mp4",
+        "video6.mp4",
+        "video7.mp4"
+    ];
 
     const container = document.getElementById("container");
 
     function rebuildGrid() {
         container.innerHTML = "";
 
-        videoSources.forEach(src => {
+        videoSources.forEach((src, index) => {
             const vid = document.createElement("video");
             vid.src = src;
-
             vid.autoplay = true;
             vid.loop = true;
             vid.muted = true;
             vid.playsInline = true;
 
+            if (videoSources.length % 3 !== 0 && index === videoSources.length - 1) {
+                vid.classList.add("center-last");
+            }
+
             container.appendChild(vid);
         });
     }
 
-    // Add Videos Button
+    rebuildGrid();
+
     document.getElementById("addBtn").onclick = () => {
         const input = document.createElement("input");
         input.type = "file";
@@ -145,20 +120,14 @@
         input.click();
     };
 
-    // Play All Button (sound fix)
     document.getElementById("playBtn").onclick = () => {
-        document.querySelectorAll("video").forEach(v => {
-            v.muted = false;
-            v.play();
-        });
+        document.querySelectorAll("video").forEach(v => v.play());
     };
 
-    // Pause All Button
     document.getElementById("pauseBtn").onclick = () => {
         document.querySelectorAll("video").forEach(v => v.pause());
     };
 
-    // Loop All Button
     document.getElementById("loopBtn").onclick = () => {
         document.querySelectorAll("video").forEach(v => v.loop = true);
     };
@@ -166,5 +135,3 @@
 
 </body>
 </html>
-
-
