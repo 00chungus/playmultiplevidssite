@@ -14,22 +14,19 @@
         overflow-x: hidden;
     }
 
-#controls {
-    display: flex;
-    gap: 10px;
-    padding: 10px;
-    background: #111;
-    justify-content: center;
-    width: 100%;
-    max-width: 900px;
-    box-sizing: border-box;
-
-    position: sticky;
-    top: 0;
-
-    /* FIX: buttons always stay on top */
-    z-index: 9999;
-}
+    #controls {
+        display: flex;
+        gap: 10px;
+        padding: 10px;
+        background: #111;
+        justify-content: center;
+        width: 100%;
+        max-width: 900px;
+        box-sizing: border-box;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
 
     button {
         background: purple;
@@ -45,30 +42,25 @@
         background: #b300b3;
     }
 
-    /* FIXED VIDEO TILE HEIGHTS */
+    /* RESPONSIVE VIDEO GRID */
     #container {
-    width: 100%;
-    max-width: 900px;
-    display: grid;
-    gap: 5px;
-    background: black;
-    box-sizing: border-box;
-    padding: 5px;
+        width: 100%;
+        max-width: 900px;
+        display: grid;
+        gap: 5px;
+        background: black;
+        box-sizing: border-box;
+        padding: 5px;
 
-    /* FIX: grid starts at top */
-    align-content: start;
-
-    /* FIX: prevent videos from overlapping controls */
-    margin-top: 10px;
-}
+        /* FORCE GRID TO START AT TOP */
+        align-content: start;
+        justify-content: center;
+    }
 
     /* Desktop: 4 columns */
     @media (min-width: 900px) {
         #container {
             grid-template-columns: repeat(4, 1fr);
-        }
-        video {
-            height: 200px;
         }
     }
 
@@ -77,18 +69,12 @@
         #container {
             grid-template-columns: repeat(3, 1fr);
         }
-        video {
-            height: 180px;
-        }
     }
 
     /* Mobile portrait: 2 columns */
     @media (max-width: 599px) {
         #container {
             grid-template-columns: repeat(2, 1fr);
-        }
-        video {
-            height: 160px;
         }
     }
 
@@ -97,13 +83,12 @@
         #container {
             grid-template-columns: repeat(3, 1fr);
         }
-        video {
-            height: 120px;
-        }
     }
 
     video {
         width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
         object-fit: cover;
         background: black;
         border-radius: 4px;
@@ -146,16 +131,40 @@
     document.getElementById("addBtn").onclick = () => {
         const input = document.createElement("input");
         input.type = "file";
-        input.accept = "video 
-            video {
-    pointer-events: auto; /* videos still clickable */
-}    
-        #controls {
-    pointer-events: auto;
-}
+        input.accept = "video/*";
+        input.multiple = true;
 
+        input.onchange = () => {
+            for (const file of input.files) {
+                const url = URL.createObjectURL(file);
+                videoSources.push(url);
+            }
+            rebuildGrid();
+        };
 
-#controls button {
-    pointer-events: auto; /* buttons ALWAYS clickable */
-}
+        input.click();
+    };
+
+    // Play All Button (sound fix)
+    document.getElementById("playBtn").onclick = () => {
+        document.querySelectorAll("video").forEach(v => {
+            v.muted = false;
+            v.play();
+        });
+    };
+
+    // Pause All Button
+    document.getElementById("pauseBtn").onclick = () => {
+        document.querySelectorAll("video").forEach(v => v.pause());
+    };
+
+    // Loop All Button
+    document.getElementById("loopBtn").onclick = () => {
+        document.querySelectorAll("video").forEach(v => v.loop = true);
+    };
+</script>
+
+</body>
+</html>
+
 
