@@ -14,19 +14,22 @@
         overflow-x: hidden;
     }
 
-    #controls {
-        display: flex;
-        gap: 10px;
-        padding: 10px;
-        background: #111;
-        justify-content: center;
-        width: 100%;
-        max-width: 900px;
-        box-sizing: border-box;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
+#controls {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    background: #111;
+    justify-content: center;
+    width: 100%;
+    max-width: 900px;
+    box-sizing: border-box;
+
+    position: sticky;
+    top: 0;
+
+    /* FIX: buttons always stay on top */
+    z-index: 9999;
+}
 
     button {
         background: purple;
@@ -44,16 +47,20 @@
 
     /* FIXED VIDEO TILE HEIGHTS */
     #container {
-        width: 100%;
-        max-width: 900px;
-        display: grid;
-        gap: 5px;
-        background: black;
-        box-sizing: border-box;
-        padding: 5px;
+    width: 100%;
+    max-width: 900px;
+    display: grid;
+    gap: 5px;
+    background: black;
+    box-sizing: border-box;
+    padding: 5px;
 
-        align-content: start;
-    }
+    /* FIX: grid starts at top */
+    align-content: start;
+
+    /* FIX: prevent videos from overlapping controls */
+    margin-top: 10px;
+}
 
     /* Desktop: 4 columns */
     @media (min-width: 900px) {
@@ -139,4 +146,12 @@
     document.getElementById("addBtn").onclick = () => {
         const input = document.createElement("input");
         input.type = "file";
-        input.accept = "video
+        input.accept = "video 
+            video {
+    pointer-events: auto; /* videos still clickable */
+}
+
+#controls button {
+    pointer-events: auto; /* buttons ALWAYS clickable */
+}
+
