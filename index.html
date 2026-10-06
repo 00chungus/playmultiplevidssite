@@ -1,13 +1,417 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-950 text-slate-100">
-<head>
+<html lang="en" class="h-full bg-slate-950 text-slate-100"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwMzMwODMxODYyODI4ODIwOTk0MiIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjX2M1Y2Y0ZjM3YzM1OTM3ZWFfaW5kZXguaHRtbC02MjgifSwiZXhwIjoxNzkxMzA3ODIyLCJpYXQiOjE3OTEzMDQyMjIsImFsZyI6IlJTMjU2In0.GE12HGcOtqtFN4sXrGVHG1jLuz4aFPQdXNLb2IsAl2IhU00qHtdnMEuYykPu7pEVcSCftJCmTwFy7hcwhmAbYmrur_qoVikamjewmMqlyL8sy-85ud_nqxnbB_smn6DCpFvM0x0AJ3IjDuVDi-Cfz2qn6YbEYERe_umoovgDamr4-4-qFgYmzZiaYB-uxtNk2lGdXQjK9oWRAprRX4ZDfuR0i1h0yswrEUrLKTnrhaN-REY1VrMcNQz6TjMhTbe2nYmKDb5TyaRv-eoMnB7-FLYJ6KXil7vEKY2pP5pT4o7Dwuo18cWkj-viyMh_metOK-7MPPHi2A33VyITUMD5HQ","c_c5cf4f37c35937ea_index.html-628")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Multi-Video Split Screen Player</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@latest" crossorigin="anonymous"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -26,7 +430,6 @@
     }
   </script>
   <style>
-    /* Custom scrollbar styling */
     ::-webkit-scrollbar {
       width: 5px;
       height: 5px;
@@ -39,7 +442,6 @@
       border-radius: 4px;
     }
 
-    /* iOS & Touch friendly range input */
     input[type="range"] {
       -webkit-appearance: none;
       appearance: none;
@@ -65,7 +467,6 @@
       box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
     }
 
-    /* Glassmorphism background */
     .glass-card {
       background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(12px);
@@ -73,64 +474,87 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* Support safe area insets on iPhone notch/home bar */
     body {
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
       padding-left: env(safe-area-inset-left);
       padding-right: env(safe-area-inset-right);
     }
+
+    /* Video rotation scaling container helper */
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .video-element {
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    /* When rotated 90 or 270 degrees, adjust scale if needed to fit bounding container */
+    .rotate-90, .rotate-270 {
+      max-width: none !important;
+      max-height: none !important;
+    }
   </style>
-</head>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.bottom-4{bottom:1rem}.right-4{right:1rem}.z-20{z-index:20}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mr-1{margin-right:0.25rem}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-2{height:0.5rem}.h-3\.5{height:0.875rem}.h-4{height:1rem}.h-full{height:100%}.h-1{height:0.25rem}.h-3{height:0.75rem}.h-5{height:1.25rem}.max-h-\[50vh\]{max-height:50vh}.min-h-0{min-height:0px}.min-h-\[250px\]{min-height:250px}.min-h-\[180px\]{min-height:180px}.w-2{width:0.5rem}.w-3\.5{width:0.875rem}.w-4{width:1rem}.w-full{width:100%}.w-12{width:3rem}.w-28{width:7rem}.w-3{width:0.75rem}.w-5{width:1.25rem}.w-8{width:2rem}.max-w-7xl{max-width:80rem}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite}.cursor-pointer{cursor:pointer}.select-none{-webkit-user-select:none;user-select:none}.appearance-none{-webkit-appearance:none;appearance:none}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-1{gap:0.25rem}.space-x-1 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.25rem * var(--tw-space-x-reverse));margin-left:calc(0.25rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-1\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.375rem * var(--tw-space-x-reverse));margin-left:calc(0.375rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-0\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.125rem * var(--tw-space-x-reverse));margin-left:calc(0.125rem * calc(1 - var(--tw-space-x-reverse)))}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded{border-radius:0.25rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-amber-500\/30{border-color:rgb(245 158 11 / 0.3)}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59 / var(--tw-border-opacity, 1))}.border-blue-500\/30{border-color:rgb(59 130 246 / 0.3)}.border-slate-800\/80{border-color:rgb(30 41 59 / 0.8)}.bg-amber-400{--tw-bg-opacity:1;background-color:rgb(251 191 36 / var(--tw-bg-opacity, 1))}.bg-amber-500\/10{background-color:rgb(245 158 11 / 0.1)}.bg-amber-600\/20{background-color:rgb(217 119 6 / 0.2)}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-800\/90{background-color:rgb(30 41 59 / 0.9)}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-slate-900\/95{background-color:rgb(15 23 42 / 0.95)}.bg-slate-950{--tw-bg-opacity:1;background-color:rgb(2 6 23 / var(--tw-bg-opacity, 1))}.bg-transparent{background-color:transparent}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0 / var(--tw-bg-opacity, 1))}.bg-black\/30{background-color:rgb(0 0 0 / 0.3)}.bg-blue-500{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.bg-blue-600\/20{background-color:rgb(37 99 235 / 0.2)}.bg-blue-600\/90{background-color:rgb(37 99 235 / 0.9)}.bg-slate-700{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.bg-slate-800\/80{background-color:rgb(30 41 59 / 0.8)}.bg-slate-900\/90{background-color:rgb(15 23 42 / 0.9)}.fill-current{fill:currentColor}.object-contain{object-fit:contain}.p-1\.5{padding:0.375rem}.p-2{padding:0.5rem}.p-1{padding:0.25rem}.p-2\.5{padding:0.625rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.px-1{padding-left:0.25rem;padding-right:0.25rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.pt-1{padding-top:0.25rem}.text-right{text-align:right}.font-sans{font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-\[10px\]{font-size:10px}.text-xs{font-size:0.75rem;line-height:1rem}.text-\[11px\]{font-size:11px}.font-medium{font-weight:500}.font-semibold{font-weight:600}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-slate-100{--tw-text-opacity:1;color:rgb(241 245 249 / var(--tw-text-opacity, 1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.opacity-0{opacity:0}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.outline-none{outline:2px solid transparent;outline-offset:2px}.backdrop-blur{--tw-backdrop-blur:blur(8px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.hover\:bg-amber-600\/30:hover{background-color:rgb(217 119 6 / 0.3)}.hover\:bg-blue-500:hover{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-700:hover{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-600\/20:hover{background-color:rgb(37 99 235 / 0.2)}.hover\:bg-rose-500\/20:hover{background-color:rgb(244 63 94 / 0.2)}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-800\/60:hover{background-color:rgb(30 41 59 / 0.6)}.hover\:text-blue-400:hover{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.hover\:text-rose-400:hover{--tw-text-opacity:1;color:rgb(251 113 133 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.hover\:opacity-100:hover{opacity:1}.focus\:border-blue-500:focus{--tw-border-opacity:1;border-color:rgb(59 130 246 / var(--tw-border-opacity, 1))}.focus\:bg-slate-800:focus{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.active\:scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.active\:bg-blue-700:active{--tw-bg-opacity:1;background-color:rgb(29 78 216 / var(--tw-bg-opacity, 1))}.active\:bg-emerald-700:active{--tw-bg-opacity:1;background-color:rgb(4 120 87 / var(--tw-bg-opacity, 1))}.active\:bg-slate-700:active{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.active\:bg-blue-600\/40:active{background-color:rgb(37 99 235 / 0.4)}.active\:text-white:active{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.active\:opacity-100:active{opacity:1}@media (min-width: 640px){.sm\:inline{display:inline}.sm\:w-16{width:4rem}.sm\:w-36{width:9rem}.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:gap-2{gap:0.5rem}.sm\:gap-4{gap:1rem}.sm\:p-4{padding:1rem}}</style></head>
 <body class="h-full flex flex-col font-sans antialiased bg-slate-950 text-slate-100 overflow-hidden select-none">
 
-  <!-- Top Navigation & Global Controls Bar -->
-  <header class="bg-slate-900/95 border-b border-slate-800 px-3 py-2.5 shrink-0 z-20 backdrop-blur">
+  <header class="bg-slate-900/95 border-b border-slate-800 px-3 py-2 shrink-0 z-20 backdrop-blur">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
       
-      <!-- Logo & iOS Audio Indicator -->
-      <div class="flex items-center space-x-2.5">
-        <div class="p-1.5 bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/30">
-          <i data-lucide="layout-grid" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <h1 class="font-bold text-sm sm:text-base leading-tight text-white tracking-wide">SplitSync iOS</h1>
-          <p class="text-[10px] text-slate-400 hidden sm:block">Safari & Brave Multi-Video Player</p>
-        </div>
+      <!-- Top Left: Quick Action File Uploaders -->
+      <div class="flex items-center flex-wrap gap-2">
+        <!-- Add File(s) Direct Upload Button -->
+        <label class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xs font-semibold shadow-md cursor-pointer transition">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="folder-plus" aria-hidden="true" class="lucide lucide-folder-plus w-4 h-4"><path d="M12 10v6"></path><path d="M9 13h6"></path><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg>
+          <span>Add Video File(s)</span>
+          <input type="file" accept="video/*" multiple="" onchange="handleMultipleFilesUpload(event)" class="hidden">
+        </label>
 
-        <!-- Audio Engine Status Badge / Quick Tap Activator for iOS -->
-        <button id="audioEngineBtn" onclick="activateAudioEngine()" 
-          class="flex items-center space-x-1 px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-semibold transition active:scale-95" 
-          title="Tap to enable audio context on iOS">
-          <span id="audioEngineDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-          <span id="audioEngineText">Enable iOS Audio</span>
+        <!-- Add URL Slot Button -->
+        <button onclick="addVideoSlot()" class="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-medium transition">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="link-2" aria-hidden="true" class="lucide lucide-link-2 w-3.5 h-3.5 text-blue-400"><path d="M9 17H7A5 5 0 0 1 7 7h2"></path><path d="M15 7h2a5 5 0 1 1 0 10h-2"></path><line x1="8" x2="16" y1="12" y2="12"></line></svg>
+          <span class="hidden sm:inline">Add URL Slot</span>
+        </button>
+
+        <!-- Copy Code for GitHub Button -->
+        <button id="copyGithubBtn" onclick="copyCodeToClipboard()" class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs font-medium transition">
+          <i data-lucide="github" class="w-3.5 h-3.5"></i>
+          <span id="copyGithubText">Copy GitHub Code</span>
         </button>
       </div>
 
-      <!-- Master Control Buttons -->
+      <!-- Top Right: Master Player & Layout Controls -->
       <div class="flex items-center flex-wrap gap-1.5 sm:gap-2">
-        
+        <!-- iOS Audio Engine Status Badge -->
+        <button id="audioEngineBtn" onclick="activateAudioEngine()" class="flex items-center space-x-1 px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-semibold transition active:scale-95" title="Tap to enable audio context on iOS">
+          <span id="audioEngineDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span id="audioEngineText" class="hidden xs:inline">iOS Audio</span>
+        </button>
+
         <!-- Master Play / Pause -->
-        <button id="masterPlayBtn" onclick="toggleMasterPlay()" class="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-blue-600 active:bg-blue-700 text-white font-medium text-xs shadow-md transition">
-          <i id="masterPlayIcon" data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
+        <button id="masterPlayBtn" onclick="toggleMasterPlay()" class="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 active:bg-emerald-700 text-white font-medium text-xs shadow-md transition">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="play" aria-hidden="true" id="masterPlayIcon" class="lucide lucide-play w-3.5 h-3.5 fill-current"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>
           <span id="masterPlayText" class="hidden sm:inline">Play All</span>
         </button>
 
         <!-- Master Mute / Unmute -->
         <button id="masterMuteBtn" onclick="toggleMasterMute()" class="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-slate-800 active:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs transition">
-          <i id="masterMuteIcon" data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="volume-2" aria-hidden="true" id="masterMuteIcon" class="lucide lucide-volume-2 w-3.5 h-3.5"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"></path><path d="M16 9a5 5 0 0 1 0 6"></path><path d="M19.364 18.364a9 9 0 0 0 0-12.728"></path></svg>
           <span id="masterMuteText" class="hidden sm:inline">Mute All</span>
-        </button>
-
-        <!-- Add Video Slot Button -->
-        <button onclick="addVideoSlot()" class="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 active:bg-emerald-700 text-white font-medium text-xs shadow-md transition">
-          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-          <span>Add Slot</span>
         </button>
 
         <!-- Layout Selector Dropdown -->
         <div class="flex items-center space-x-1 bg-slate-800/90 border border-slate-700 rounded-lg px-2 py-1">
-          <label for="layoutSelect" class="text-[11px] text-slate-400 font-medium hidden md:inline">Layout:</label>
           <select id="layoutSelect" onchange="changeLayout(this.value)" class="bg-transparent text-xs text-slate-200 focus:outline-none cursor-pointer">
             <option value="auto" class="bg-slate-900">Auto Grid</option>
             <option value="1x1" class="bg-slate-900">1 Screen</option>
@@ -140,26 +564,243 @@
         </div>
 
         <!-- Master Fullscreen -->
-        <button onclick="toggleMasterFullscreen()" title="Toggle Main Container Fullscreen" class="p-1.5 rounded-lg bg-slate-800 active:bg-slate-700 text-slate-300 border border-slate-700 transition">
-          <i id="masterFsIcon" data-lucide="maximize" class="w-4 h-4"></i>
+        <button onclick="toggleMasterFullscreen()" title="Toggle Fullscreen" class="p-1.5 rounded-lg bg-slate-800 active:bg-slate-700 text-slate-300 border border-slate-700 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="maximize" aria-hidden="true" id="masterFsIcon" class="lucide lucide-maximize w-4 h-4"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
         </button>
       </div>
 
     </div>
   </header>
 
-  <!-- Main Video Container Area -->
   <main id="playerGridContainer" class="flex-1 p-2 sm:p-4 overflow-y-auto bg-slate-950 min-h-0">
-    <div id="videoGrid" class="grid gap-2.5 sm:gap-4 h-full w-full min-h-[250px]">
-      <!-- Video player cards will be inserted dynamically via JS -->
-    </div>
+    <div id="videoGrid" class="grid gap-2.5 sm:gap-4 h-full w-full min-h-[250px] grid-cols-1 sm:grid-cols-2">
+      <!-- Video slots dynamically inserted here -->
+    <div id="card-1" class="glass-card rounded-xl overflow-hidden flex flex-col shadow-lg border border-slate-800 relative">
+        <!-- Card Top Header -->
+        <div class="px-2.5 py-1.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between gap-2 shrink-0">
+          <div class="flex items-center space-x-1.5 truncate">
+            <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+            <input type="text" value="Video 1" onchange="updateSlotTitle(1, this.value)" class="bg-transparent text-xs font-semibold text-slate-200 hover:bg-slate-800/60 focus:bg-slate-800 px-1 py-0.5 rounded outline-none w-28 sm:w-36 transition">
+          </div>
+
+          <div class="flex items-center space-x-1">
+            <!-- Rotate Video Button -->
+            <button onclick="rotateVideoSlot(1)" title="Rotate 90° (Landscape/Portrait)" class="p-1 hover:bg-blue-600/20 text-slate-300 hover:text-blue-400 rounded transition flex items-center space-x-0.5 text-[10px]">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="rotate-cw" aria-hidden="true" class="lucide lucide-rotate-cw w-3.5 h-3.5"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
+              <span id="rotDeg-1" class="font-mono text-[10px] hidden xs:inline">0°</span>
+            </button>
+            <button onclick="toggleSlotFullscreen(1)" title="Fullscreen Tile" class="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="maximize-2" aria-hidden="true" class="lucide lucide-maximize-2 w-3.5 h-3.5"><path d="M15 3h6v6"></path><path d="m21 3-7 7"></path><path d="m3 21 7-7"></path><path d="M9 21H3v-6"></path></svg>
+            </button>
+            <button onclick="removeVideoSlot(1)" title="Remove Slot" class="p-1 hover:bg-rose-500/20 rounded text-slate-400 hover:text-rose-400 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-3.5 h-3.5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Video Pane Wrapper for Rotation -->
+        <div id="videoContainer-1" class="relative flex-1 bg-black flex items-center justify-center min-h-[180px] overflow-hidden group">
+          <div class="video-wrapper">
+            <video id="vid-1" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" loop="" crossorigin="anonymous" playsinline="" webkit-playsinline="" onplay="onVideoPlayStateChange(1)" onpause="onVideoPlayStateChange(1)" onloadedmetadata="onVideoLoaded(1)" ontimeupdate="onVideoTimeUpdate(1)" onclick="togglePlaySlot(1)" class="video-element w-full h-full object-contain max-h-[50vh] cursor-pointer">
+            </video>
+          </div>
+
+          <!-- Quick Play Overlay -->
+          <div id="playOverlay-1" onclick="togglePlaySlot(1)" class="absolute inset-0 bg-black/30 opacity-0 active:opacity-100 hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
+            <div class="p-2.5 bg-blue-600/90 text-white rounded-full shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="play" aria-hidden="true" id="overlayPlayIcon-1" class="lucide lucide-play w-5 h-5 fill-current"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="p-2.5 bg-slate-900/90 flex flex-col gap-2 shrink-0 border-t border-slate-800">
+          
+          <!-- Seek Track Bar -->
+          <div class="flex items-center gap-2">
+            <span id="timeCurrent-1" class="text-[10px] font-mono text-slate-400 w-8 text-right">0:00</span>
+            <input type="range" id="seek-1" min="0" max="100" value="0" step="0.1" oninput="seekVideo(1, this.value)" class="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+            <span id="timeDuration-1" class="text-[10px] font-mono text-slate-400 w-8">0:00</span>
+          </div>
+
+          <!-- Controls Layout -->
+          <div class="flex flex-wrap items-center justify-between gap-1.5 text-xs">
+            
+            <div class="flex items-center space-x-1.5">
+              <!-- Play/Pause -->
+              <button id="btnPlay-1" onclick="togglePlaySlot(1)" class="p-1.5 rounded-lg bg-blue-600/20 active:bg-blue-600/40 text-blue-400 border border-blue-500/30 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="play" aria-hidden="true" id="iconPlay-1" class="lucide lucide-play w-4 h-4 fill-current"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>
+              </button>
+
+              <!-- Mute & Volume -->
+              <div class="flex items-center space-x-1 bg-slate-800/80 px-1.5 py-1 rounded-lg border border-slate-700">
+                <button id="btnMute-1" onclick="toggleMuteSlot(1)" class="text-slate-400 active:text-white transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="volume-2" aria-hidden="true" id="iconMute-1" class="lucide lucide-volume-2 w-3.5 h-3.5"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"></path><path d="M16 9a5 5 0 0 1 0 6"></path><path d="M19.364 18.364a9 9 0 0 0 0-12.728"></path></svg>
+                </button>
+                <input type="range" id="vol-1" min="0" max="1" step="0.05" value="1" oninput="changeVolumeSlot(1, this.value)" class="w-12 sm:w-16 h-1">
+              </div>
+
+              <!-- Stereo Audio Panner -->
+              <div class="flex items-center bg-slate-800/80 px-1.5 py-1 rounded-lg border border-slate-700" title="Ear Channel Panning">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="headphones" aria-hidden="true" class="lucide lucide-headphones w-3.5 h-3.5 text-slate-400 mr-1"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path></svg>
+                <select id="pan-1" onchange="changePanSlot(1, this.value)" class="bg-transparent text-[11px] text-slate-300 focus:outline-none cursor-pointer">
+                  <option value="-1" class="bg-slate-900">Left</option>
+                  <option value="0" selected="" class="bg-slate-900">Both</option>
+                  <option value="1" class="bg-slate-900">Right</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Custom Speed Dropdown including 0.2x, 0.3x, 0.4x, 0.5x, 0.6x -->
+            <div class="flex items-center space-x-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="gauge" aria-hidden="true" class="lucide lucide-gauge w-3.5 h-3.5 text-slate-400"><path d="m12 14 4-4"></path><path d="M3.34 19a10 10 0 1 1 17.32 0"></path></svg>
+              <select id="speed-1" onchange="changeSpeedSlot(1, this.value)" class="bg-slate-800 border border-slate-700 text-slate-200 text-[11px] rounded-lg px-1.5 py-1 focus:outline-none cursor-pointer">
+                <option value="0.2">0.2x</option>
+                <option value="0.3">0.3x</option>
+                <option value="0.4">0.4x</option>
+                <option value="0.5">0.5x</option>
+                <option value="0.6">0.6x</option>
+                <option value="1.0" selected="">1.0x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2.0">2.0x</option>
+              </select>
+            </div>
+
+          </div>
+
+          <!-- Video Source Loader Input -->
+          <div class="flex items-center gap-1 pt-1 border-t border-slate-800/80">
+            <input type="text" id="urlInput-1" value="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" placeholder="Video URL..." class="flex-1 bg-slate-950 border border-slate-800 focus:border-blue-500 rounded px-2 py-0.5 text-[10px] text-slate-300 focus:outline-none">
+            
+            <button onclick="loadUrlSlot(1)" class="px-2 py-0.5 bg-slate-800 active:bg-slate-700 text-slate-300 rounded text-[10px] font-medium">
+              Load URL
+            </button>
+
+            <label class="px-2 py-0.5 bg-slate-800 active:bg-slate-700 text-slate-300 rounded text-[10px] font-medium cursor-pointer flex items-center space-x-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="upload" aria-hidden="true" class="lucide lucide-upload w-3 h-3"><path d="M12 3v12"></path><path d="m17 8-5-5-5 5"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>
+              <span>File</span>
+              <input type="file" accept="video/*" onchange="loadFileSlot(1, event)" class="hidden">
+            </label>
+          </div>
+
+        </div>
+      </div><div id="card-2" class="glass-card rounded-xl overflow-hidden flex flex-col shadow-lg border border-slate-800 relative">
+        <!-- Card Top Header -->
+        <div class="px-2.5 py-1.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between gap-2 shrink-0">
+          <div class="flex items-center space-x-1.5 truncate">
+            <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+            <input type="text" value="Video 2" onchange="updateSlotTitle(2, this.value)" class="bg-transparent text-xs font-semibold text-slate-200 hover:bg-slate-800/60 focus:bg-slate-800 px-1 py-0.5 rounded outline-none w-28 sm:w-36 transition">
+          </div>
+
+          <div class="flex items-center space-x-1">
+            <!-- Rotate Video Button -->
+            <button onclick="rotateVideoSlot(2)" title="Rotate 90° (Landscape/Portrait)" class="p-1 hover:bg-blue-600/20 text-slate-300 hover:text-blue-400 rounded transition flex items-center space-x-0.5 text-[10px]">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="rotate-cw" aria-hidden="true" class="lucide lucide-rotate-cw w-3.5 h-3.5"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
+              <span id="rotDeg-2" class="font-mono text-[10px] hidden xs:inline">0°</span>
+            </button>
+            <button onclick="toggleSlotFullscreen(2)" title="Fullscreen Tile" class="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="maximize-2" aria-hidden="true" class="lucide lucide-maximize-2 w-3.5 h-3.5"><path d="M15 3h6v6"></path><path d="m21 3-7 7"></path><path d="m3 21 7-7"></path><path d="M9 21H3v-6"></path></svg>
+            </button>
+            <button onclick="removeVideoSlot(2)" title="Remove Slot" class="p-1 hover:bg-rose-500/20 rounded text-slate-400 hover:text-rose-400 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-3.5 h-3.5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Video Pane Wrapper for Rotation -->
+        <div id="videoContainer-2" class="relative flex-1 bg-black flex items-center justify-center min-h-[180px] overflow-hidden group">
+          <div class="video-wrapper">
+            <video id="vid-2" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" loop="" crossorigin="anonymous" playsinline="" webkit-playsinline="" onplay="onVideoPlayStateChange(2)" onpause="onVideoPlayStateChange(2)" onloadedmetadata="onVideoLoaded(2)" ontimeupdate="onVideoTimeUpdate(2)" onclick="togglePlaySlot(2)" class="video-element w-full h-full object-contain max-h-[50vh] cursor-pointer">
+            </video>
+          </div>
+
+          <!-- Quick Play Overlay -->
+          <div id="playOverlay-2" onclick="togglePlaySlot(2)" class="absolute inset-0 bg-black/30 opacity-0 active:opacity-100 hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
+            <div class="p-2.5 bg-blue-600/90 text-white rounded-full shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="play" aria-hidden="true" id="overlayPlayIcon-2" class="lucide lucide-play w-5 h-5 fill-current"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="p-2.5 bg-slate-900/90 flex flex-col gap-2 shrink-0 border-t border-slate-800">
+          
+          <!-- Seek Track Bar -->
+          <div class="flex items-center gap-2">
+            <span id="timeCurrent-2" class="text-[10px] font-mono text-slate-400 w-8 text-right">0:00</span>
+            <input type="range" id="seek-2" min="0" max="100" value="0" step="0.1" oninput="seekVideo(2, this.value)" class="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+            <span id="timeDuration-2" class="text-[10px] font-mono text-slate-400 w-8">0:00</span>
+          </div>
+
+          <!-- Controls Layout -->
+          <div class="flex flex-wrap items-center justify-between gap-1.5 text-xs">
+            
+            <div class="flex items-center space-x-1.5">
+              <!-- Play/Pause -->
+              <button id="btnPlay-2" onclick="togglePlaySlot(2)" class="p-1.5 rounded-lg bg-blue-600/20 active:bg-blue-600/40 text-blue-400 border border-blue-500/30 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="play" aria-hidden="true" id="iconPlay-2" class="lucide lucide-play w-4 h-4 fill-current"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>
+              </button>
+
+              <!-- Mute & Volume -->
+              <div class="flex items-center space-x-1 bg-slate-800/80 px-1.5 py-1 rounded-lg border border-slate-700">
+                <button id="btnMute-2" onclick="toggleMuteSlot(2)" class="text-slate-400 active:text-white transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="volume-2" aria-hidden="true" id="iconMute-2" class="lucide lucide-volume-2 w-3.5 h-3.5"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"></path><path d="M16 9a5 5 0 0 1 0 6"></path><path d="M19.364 18.364a9 9 0 0 0 0-12.728"></path></svg>
+                </button>
+                <input type="range" id="vol-2" min="0" max="1" step="0.05" value="1" oninput="changeVolumeSlot(2, this.value)" class="w-12 sm:w-16 h-1">
+              </div>
+
+              <!-- Stereo Audio Panner -->
+              <div class="flex items-center bg-slate-800/80 px-1.5 py-1 rounded-lg border border-slate-700" title="Ear Channel Panning">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="headphones" aria-hidden="true" class="lucide lucide-headphones w-3.5 h-3.5 text-slate-400 mr-1"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path></svg>
+                <select id="pan-2" onchange="changePanSlot(2, this.value)" class="bg-transparent text-[11px] text-slate-300 focus:outline-none cursor-pointer">
+                  <option value="-1" class="bg-slate-900">Left</option>
+                  <option value="0" selected="" class="bg-slate-900">Both</option>
+                  <option value="1" class="bg-slate-900">Right</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Custom Speed Dropdown including 0.2x, 0.3x, 0.4x, 0.5x, 0.6x -->
+            <div class="flex items-center space-x-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="gauge" aria-hidden="true" class="lucide lucide-gauge w-3.5 h-3.5 text-slate-400"><path d="m12 14 4-4"></path><path d="M3.34 19a10 10 0 1 1 17.32 0"></path></svg>
+              <select id="speed-2" onchange="changeSpeedSlot(2, this.value)" class="bg-slate-800 border border-slate-700 text-slate-200 text-[11px] rounded-lg px-1.5 py-1 focus:outline-none cursor-pointer">
+                <option value="0.2">0.2x</option>
+                <option value="0.3">0.3x</option>
+                <option value="0.4">0.4x</option>
+                <option value="0.5">0.5x</option>
+                <option value="0.6">0.6x</option>
+                <option value="1.0" selected="">1.0x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2.0">2.0x</option>
+              </select>
+            </div>
+
+          </div>
+
+          <!-- Video Source Loader Input -->
+          <div class="flex items-center gap-1 pt-1 border-t border-slate-800/80">
+            <input type="text" id="urlInput-2" value="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" placeholder="Video URL..." class="flex-1 bg-slate-950 border border-slate-800 focus:border-blue-500 rounded px-2 py-0.5 text-[10px] text-slate-300 focus:outline-none">
+            
+            <button onclick="loadUrlSlot(2)" class="px-2 py-0.5 bg-slate-800 active:bg-slate-700 text-slate-300 rounded text-[10px] font-medium">
+              Load URL
+            </button>
+
+            <label class="px-2 py-0.5 bg-slate-800 active:bg-slate-700 text-slate-300 rounded text-[10px] font-medium cursor-pointer flex items-center space-x-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="upload" aria-hidden="true" class="lucide lucide-upload w-3 h-3"><path d="M12 3v12"></path><path d="m17 8-5-5-5 5"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>
+              <span>File</span>
+              <input type="file" accept="video/*" onchange="loadFileSlot(2, event)" class="hidden">
+            </label>
+          </div>
+
+        </div>
+      </div></div>
   </main>
 
-  <!-- Notification Toast Container -->
   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
   <script>
-    /* Sample HLS / MP4 video streams compatible with Safari & Brave iOS */
     const SAMPLE_VIDEOS = [
       "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
       "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
@@ -170,9 +811,9 @@
     let slots = [];
     let nextSlotId = 1;
     let isMasterMuted = false;
-    let audioCtx = null; // Web Audio API context
+    let audioCtx = null;
 
-    /* iOS Web Audio Unlocking Mechanism */
+    /* Web Audio API Context for iOS Safari / Brave */
     function getAudioContext() {
       if (!audioCtx) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -192,7 +833,7 @@
       if (ctx) {
         ctx.resume().then(() => {
           updateAudioEngineUI();
-          showToast("iOS Audio Engine Active");
+          showToast("Audio Engine Active");
         });
       }
     }
@@ -211,11 +852,10 @@
       } else {
         btn.className = "flex items-center space-x-1 px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-semibold";
         dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
-        text.textContent = "Tap for iOS Audio";
+        text.textContent = "iOS Audio";
       }
     }
 
-    /* Auto unlock audio context on any user touch/click anywhere */
     const unlockAudioOnGesture = () => {
       activateAudioEngine();
       window.removeEventListener('touchstart', unlockAudioOnGesture);
@@ -224,7 +864,6 @@
     window.addEventListener('touchstart', unlockAudioOnGesture, { passive: true });
     window.addEventListener('click', unlockAudioOnGesture, { passive: true });
 
-    /* Initialize Application with 2 Default Video Slots */
     window.addEventListener('DOMContentLoaded', () => {
       addVideoSlot(SAMPLE_VIDEOS[0], "Video 1");
       addVideoSlot(SAMPLE_VIDEOS[1], "Video 2");
@@ -232,7 +871,21 @@
       lucide.createIcons();
     });
 
-    /* Add a new video tile slot */
+    /* Multi-file batch upload handler at top header */
+    function handleMultipleFilesUpload(event) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileUrl = URL.createObjectURL(file);
+        addVideoSlot(fileUrl, file.name);
+      }
+
+      showToast(`Added ${files.length} video file(s)`);
+      event.target.value = '';
+    }
+
     function addVideoSlot(sourceUrl = "", titleOverride = null) {
       const slotId = nextSlotId++;
       const title = titleOverride || `Video ${slots.length + 1}`;
@@ -245,7 +898,8 @@
         playbackSpeed: 1.0,
         volume: 1.0,
         isMuted: false,
-        pan: 0, // -1 = Left, 0 = Center, 1 = Right
+        pan: 0,
+        rotation: 0, // 0, 90, 180, 270 degrees
         audioNodesInitialized: false,
         sourceNode: null,
         pannerNode: null,
@@ -256,10 +910,9 @@
       updateLayoutClass();
     }
 
-    /* Remove a specific video slot */
     function removeVideoSlot(slotId) {
       if (slots.length <= 1) {
-        showToast("Minimum 1 video required", "warning");
+        showToast("Minimum 1 video slot required", "warning");
         return;
       }
 
@@ -271,7 +924,6 @@
       showToast("Slot removed");
     }
 
-    /* Dynamic Grid Layout Adjustments */
     function changeLayout(layoutValue) {
       updateLayoutClass(layoutValue);
     }
@@ -285,34 +937,23 @@
 
       if (layout === '1x1') {
         grid.classList.add('grid-cols-1');
-      } else if (layout === '1x2') {
-        grid.classList.add('grid-cols-1', 'sm:grid-cols-2');
-      } else if (layout === '2x2') {
+      } else if (layout === '1x2' || layout === '2x2') {
         grid.classList.add('grid-cols-1', 'sm:grid-cols-2');
       } else {
-        // Auto Grid logic
-        if (count === 1) {
-          grid.classList.add('grid-cols-1');
-        } else if (count === 2) {
-          grid.classList.add('grid-cols-1', 'sm:grid-cols-2');
-        } else if (count <= 4) {
-          grid.classList.add('grid-cols-1', 'sm:grid-cols-2');
-        } else {
-          grid.classList.add('grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-3');
-        }
+        if (count === 1) grid.classList.add('grid-cols-1');
+        else if (count <= 4) grid.classList.add('grid-cols-1', 'sm:grid-cols-2');
+        else grid.classList.add('grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-3');
       }
     }
 
-    /* Render Individual Video Card Component */
     function renderVideoCard(slot) {
       const grid = document.getElementById('videoGrid');
       const card = document.createElement('div');
       card.id = `card-${slot.id}`;
       card.className = "glass-card rounded-xl overflow-hidden flex flex-col shadow-lg border border-slate-800 relative";
 
-      /* Note critical iOS attributes: playsinline webkit-playsinline */
       card.innerHTML = `
-        <!-- Top Title Bar -->
+        <!-- Card Top Header -->
         <div class="px-2.5 py-1.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between gap-2 shrink-0">
           <div class="flex items-center space-x-1.5 truncate">
             <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
@@ -321,6 +962,11 @@
           </div>
 
           <div class="flex items-center space-x-1">
+            <!-- Rotate Video Button -->
+            <button onclick="rotateVideoSlot(${slot.id})" title="Rotate 90° (Landscape/Portrait)" class="p-1 hover:bg-blue-600/20 text-slate-300 hover:text-blue-400 rounded transition flex items-center space-x-0.5 text-[10px]">
+              <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+              <span id="rotDeg-${slot.id}" class="font-mono text-[10px] hidden xs:inline">0°</span>
+            </button>
             <button onclick="toggleSlotFullscreen(${slot.id})" title="Fullscreen Tile" class="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition">
               <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
             </button>
@@ -330,19 +976,21 @@
           </div>
         </div>
 
-        <!-- Video Display Container -->
-        <div id="videoContainer-${slot.id}" class="relative flex-1 bg-black flex items-center justify-center min-h-[160px] overflow-hidden group">
-          <video id="vid-${slot.id}" src="${slot.url}" loop crossorigin="anonymous"
-            playsinline webkit-playsinline
-            onplay="onVideoPlayStateChange(${slot.id})" 
-            onpause="onVideoPlayStateChange(${slot.id})"
-            onloadedmetadata="onVideoLoaded(${slot.id})"
-            ontimeupdate="onVideoTimeUpdate(${slot.id})"
-            onclick="togglePlaySlot(${slot.id})"
-            class="w-full h-full object-contain max-h-[50vh] cursor-pointer">
-          </video>
+        <!-- Video Pane Wrapper for Rotation -->
+        <div id="videoContainer-${slot.id}" class="relative flex-1 bg-black flex items-center justify-center min-h-[180px] overflow-hidden group">
+          <div class="video-wrapper">
+            <video id="vid-${slot.id}" src="${slot.url}" loop crossorigin="anonymous"
+              playsinline webkit-playsinline
+              onplay="onVideoPlayStateChange(${slot.id})" 
+              onpause="onVideoPlayStateChange(${slot.id})"
+              onloadedmetadata="onVideoLoaded(${slot.id})"
+              ontimeupdate="onVideoTimeUpdate(${slot.id})"
+              onclick="togglePlaySlot(${slot.id})"
+              class="video-element w-full h-full object-contain max-h-[50vh] cursor-pointer">
+            </video>
+          </div>
 
-          <!-- Quick Touch Play Overlay -->
+          <!-- Quick Play Overlay -->
           <div id="playOverlay-${slot.id}" onclick="togglePlaySlot(${slot.id})" 
             class="absolute inset-0 bg-black/30 opacity-0 active:opacity-100 hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
             <div class="p-2.5 bg-blue-600/90 text-white rounded-full shadow-lg">
@@ -351,10 +999,10 @@
           </div>
         </div>
 
-        <!-- Control Dashboard Area -->
+        <!-- Controls Bar -->
         <div class="p-2.5 bg-slate-900/90 flex flex-col gap-2 shrink-0 border-t border-slate-800">
           
-          <!-- Time Scrub Bar -->
+          <!-- Seek Track Bar -->
           <div class="flex items-center gap-2">
             <span id="timeCurrent-${slot.id}" class="text-[10px] font-mono text-slate-400 w-8 text-right">0:00</span>
             <input type="range" id="seek-${slot.id}" min="0" max="100" value="0" step="0.1"
@@ -363,16 +1011,16 @@
             <span id="timeDuration-${slot.id}" class="text-[10px] font-mono text-slate-400 w-8">0:00</span>
           </div>
 
-          <!-- Touch Friendly Control Bar -->
+          <!-- Controls Layout -->
           <div class="flex flex-wrap items-center justify-between gap-1.5 text-xs">
             
             <div class="flex items-center space-x-1.5">
-              <!-- Play / Pause -->
+              <!-- Play/Pause -->
               <button id="btnPlay-${slot.id}" onclick="togglePlaySlot(${slot.id})" class="p-1.5 rounded-lg bg-blue-600/20 active:bg-blue-600/40 text-blue-400 border border-blue-500/30 transition">
                 <i id="iconPlay-${slot.id}" data-lucide="play" class="w-4 h-4 fill-current"></i>
               </button>
 
-              <!-- Mute / Volume -->
+              <!-- Mute & Volume -->
               <div class="flex items-center space-x-1 bg-slate-800/80 px-1.5 py-1 rounded-lg border border-slate-700">
                 <button id="btnMute-${slot.id}" onclick="toggleMuteSlot(${slot.id})" class="text-slate-400 active:text-white transition">
                   <i id="iconMute-${slot.id}" data-lucide="volume-2" class="w-3.5 h-3.5"></i>
@@ -382,8 +1030,8 @@
                   class="w-12 sm:w-16 h-1">
               </div>
 
-              <!-- Stereo Audio Panning (Headphones) -->
-              <div class="flex items-center bg-slate-800/80 px-1.5 py-1 rounded-lg border border-slate-700" title="Left / Both / Right Ear">
+              <!-- Stereo Audio Panner -->
+              <div class="flex items-center bg-slate-800/80 px-1.5 py-1 rounded-lg border border-slate-700" title="Ear Channel Panning">
                 <i data-lucide="headphones" class="w-3.5 h-3.5 text-slate-400 mr-1"></i>
                 <select id="pan-${slot.id}" onchange="changePanSlot(${slot.id}, this.value)" class="bg-transparent text-[11px] text-slate-300 focus:outline-none cursor-pointer">
                   <option value="-1" class="bg-slate-900">Left</option>
@@ -393,7 +1041,7 @@
               </div>
             </div>
 
-            <!-- Speed Selector (0.2x, 0.3x, 0.4x, 0.5x, 0.6x, 1x, 1.5x, 2x) -->
+            <!-- Custom Speed Dropdown including 0.2x, 0.3x, 0.4x, 0.5x, 0.6x -->
             <div class="flex items-center space-x-1">
               <i data-lucide="gauge" class="w-3.5 h-3.5 text-slate-400"></i>
               <select id="speed-${slot.id}" onchange="changeSpeedSlot(${slot.id}, this.value)" 
@@ -412,13 +1060,13 @@
 
           </div>
 
-          <!-- Video Source Selector (URL Input & Local File Picker) -->
+          <!-- Video Source Loader Input -->
           <div class="flex items-center gap-1 pt-1 border-t border-slate-800/80">
             <input type="text" id="urlInput-${slot.id}" value="${slot.url}" placeholder="Video URL..."
               class="flex-1 bg-slate-950 border border-slate-800 focus:border-blue-500 rounded px-2 py-0.5 text-[10px] text-slate-300 focus:outline-none">
             
             <button onclick="loadUrlSlot(${slot.id})" class="px-2 py-0.5 bg-slate-800 active:bg-slate-700 text-slate-300 rounded text-[10px] font-medium">
-              Load
+              Load URL
             </button>
 
             <label class="px-2 py-0.5 bg-slate-800 active:bg-slate-700 text-slate-300 rounded text-[10px] font-medium cursor-pointer flex items-center space-x-1">
@@ -435,24 +1083,40 @@
       lucide.createIcons();
     }
 
+    function rotateVideoSlot(slotId) {
+      const slot = slots.find(s => s.id === slotId);
+      const vid = document.getElementById(`vid-${slotId}`);
+      const degLabel = document.getElementById(`rotDeg-${slotId}`);
+      if (!slot || !vid) return;
+
+      slot.rotation = (slot.rotation + 90) % 360;
+      
+      // Apply CSS rotation transform with responsive aspect handling
+      if (slot.rotation === 90 || slot.rotation === 270) {
+        vid.style.transform = `rotate(${slot.rotation}deg) scale(0.75)`;
+      } else {
+        vid.style.transform = `rotate(${slot.rotation}deg) scale(1)`;
+      }
+
+      if (degLabel) degLabel.textContent = `${slot.rotation}°`;
+      showToast(`Rotated ${slot.rotation}°`);
+    }
+
     function updateSlotTitle(slotId, newTitle) {
       const slot = slots.find(s => s.id === slotId);
       if (slot) slot.title = newTitle;
     }
 
-    /* Web Audio API Integration with Stereo Panner Node for Safari/Brave */
     function initWebAudioForSlot(slot) {
       if (slot.audioNodesInitialized) return;
 
       try {
         const vid = document.getElementById(`vid-${slot.id}`);
         const context = getAudioContext();
-
         if (!context) return;
 
         const source = context.createMediaElementSource(vid);
         
-        // Check for StereoPanner support
         if (context.createStereoPanner) {
           const panner = context.createStereoPanner();
           panner.pan.value = slot.pan;
@@ -460,15 +1124,12 @@
           panner.connect(context.destination);
           slot.pannerNode = panner;
         } else {
-          // Fallback node route
           source.connect(context.destination);
         }
 
         slot.sourceNode = source;
         slot.audioNodesInitialized = true;
-      } catch (err) {
-        // Element might already be connected
-      }
+      } catch (err) {}
     }
 
     function togglePlaySlot(slotId) {
@@ -493,7 +1154,6 @@
       if (!vid) return;
 
       const isPaused = vid.paused;
-
       if (playIcon) playIcon.setAttribute('data-lucide', isPaused ? 'play' : 'pause');
       if (overlayIcon) overlayIcon.setAttribute('data-lucide', isPaused ? 'play' : 'pause');
       lucide.createIcons();
@@ -537,7 +1197,6 @@
       }
     }
 
-    /* Speed rate control (iOS compatible) */
     function changeSpeedSlot(slotId, val) {
       const slot = slots.find(s => s.id === slotId);
       const vid = document.getElementById(`vid-${slotId}`);
@@ -589,7 +1248,7 @@
         slot.url = url;
         vid.src = url;
         vid.load();
-        showToast(`Loaded new video`);
+        showToast(`Loaded new video URL`);
       }
     }
 
@@ -613,7 +1272,7 @@
       showToast(`Loaded "${file.name}"`);
     }
 
-    /* Master Controls */
+    /* Master Controllers */
     function toggleMasterPlay() {
       activateAudioEngine();
 
@@ -626,11 +1285,8 @@
         const v = document.getElementById(`vid-${s.id}`);
         if (v) {
           initWebAudioForSlot(s);
-          if (allPaused) {
-            v.play().catch(() => {});
-          } else {
-            v.pause();
-          }
+          if (allPaused) v.play().catch(() => {});
+          else v.pause();
         }
       });
 
@@ -660,9 +1316,7 @@
         if (v) {
           s.isMuted = isMasterMuted;
           v.muted = isMasterMuted;
-          if (iconMute) {
-            iconMute.setAttribute('data-lucide', isMasterMuted ? 'volume-x' : 'volume-2');
-          }
+          if (iconMute) iconMute.setAttribute('data-lucide', isMasterMuted ? 'volume-x' : 'volume-2');
         }
       });
 
@@ -675,39 +1329,69 @@
       showToast(isMasterMuted ? "Muted All" : "Unmuted All");
     }
 
-    /* Individual Fullscreen with iOS WebKit Fallback */
     function toggleSlotFullscreen(slotId) {
       const vid = document.getElementById(`vid-${slotId}`);
       const container = document.getElementById(`videoContainer-${slotId}`);
       if (!vid) return;
 
-      // Standard Fullscreen API
       if (container && container.requestFullscreen) {
         container.requestFullscreen();
       } else if (vid.webkitEnterFullscreen) {
-        // iPhone Native Safari/Brave WebKit Fullscreen Fallback
         vid.webkitEnterFullscreen();
       }
     }
 
-    /* Master Container Fullscreen */
     function toggleMasterFullscreen() {
       const gridContainer = document.getElementById('playerGridContainer');
       if (!gridContainer) return;
 
       if (!document.fullscreenElement) {
-        if (gridContainer.requestFullscreen) {
-          gridContainer.requestFullscreen();
-        } else if (gridContainer.webkitRequestFullscreen) {
-          gridContainer.webkitRequestFullscreen();
-        } else {
-          showToast("Fullscreen not supported on this device", "warning");
-        }
+        if (gridContainer.requestFullscreen) gridContainer.requestFullscreen();
+        else if (gridContainer.webkitRequestFullscreen) gridContainer.webkitRequestFullscreen();
       } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
+        if (document.exitFullscreen) document.exitFullscreen();
       }
+    }
+
+    function copyCodeToClipboard() {
+      const fullHtmlCode = document.documentElement.outerHTML;
+      const formattedCode = "<!DOCTYPE html>\n" + fullHtmlCode;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(formattedCode).then(() => {
+          notifyCopiedSuccess();
+        }).catch(() => {
+          fallbackCopyText(formattedCode);
+        });
+      } else {
+        fallbackCopyText(formattedCode);
+      }
+    }
+
+    function fallbackCopyText(text) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        notifyCopiedSuccess();
+      } catch (err) {
+        showToast("Failed to copy code automatically", "warning");
+      }
+      document.body.removeChild(textArea);
+    }
+
+    function notifyCopiedSuccess() {
+      const text = document.getElementById('copyGithubText');
+      if (text) text.textContent = "Copied!";
+      showToast("Entire HTML code copied to clipboard!");
+      setTimeout(() => {
+        if (text) text.textContent = "Copy GitHub Code";
+      }, 3000);
     }
 
     function formatTime(seconds) {
@@ -742,5 +1426,5 @@
       }, 2000);
     }
   </script>
-</body>
-</html>
+
+</body></html>
