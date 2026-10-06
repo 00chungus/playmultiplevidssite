@@ -1,107 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Multi-Video Sync Player</title>
-<style>
-    body {
-        margin: 0;
-        background: black;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        color: white;
-        overflow-x: hidden;
-    }
+    <meta charset="UTF-8">
+    <title>Multi-Video Sync Player</title>
+    <style>
+        body {
+            margin: 0;
+            background: black;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            overflow-x: hidden;
+        }
 
-    #controls {
-        display: flex;
-        gap: 10px;
-        padding: 10px;
-        background: #111;
-        justify-content: center;
-        width: 100%;
-        max-width: 900px;
-        box-sizing: border-box;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
+        #controls {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: #111;
+            justify-content: center;
+            width: 100%;
+            max-width: 900px;
+            box-sizing: border-box;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
 
-    button {
-        background: purple;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-        border-radius: 6px;
-    }
+        button {
+            background: purple;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 6px;
+        }
 
-    button:hover {
-        background: #b300b3;
-    }
+        button:hover {
+            background: #b300b3;
+        }
 
-    /* FIXED VIDEO TILE HEIGHTS */
-    #container {
-        width: 100%;
-        max-width: 900px;
-        display: grid;
-        gap: 5px;
-        background: black;
-        box-sizing: border-box;
-        padding: 5px;
-
-        align-content: start;
-    }
-
-    /* Desktop: 4 columns */
-    @media (min-width: 900px) {
         #container {
-            grid-template-columns: repeat(4, 1fr);
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            gap: 5px;
+            background: black;
+            box-sizing: border-box;
+            padding: 5px;
+            align-content: start;
         }
-        video {
-            height: 200px;
-        }
-    }
 
-    /* Medium screens: 3 columns */
-    @media (min-width: 600px) and (max-width: 899px) {
-        #container {
-            grid-template-columns: repeat(3, 1fr);
+        /* Responsive grid layout */
+        @media (min-width: 900px) {
+            #container {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            video {
+                height: 200px;
+            }
         }
-        video {
-            height: 180px;
-        }
-    }
 
-    /* Mobile portrait: 2 columns */
-    @media (max-width: 599px) {
-        #container {
-            grid-template-columns: repeat(2, 1fr);
+        @media (min-width: 600px) and (max-width: 899px) {
+            #container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            video {
+                height: 180px;
+            }
         }
-        video {
-            height: 160px;
-        }
-    }
 
-    /* Mobile landscape: 3 columns */
-    @media (max-height: 450px) {
-        #container {
-            grid-template-columns: repeat(3, 1fr);
+        @media (max-width: 599px) {
+            #container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            video {
+                height: 160px;
+            }
         }
-        video {
-            height: 120px;
-        }
-    }
 
-    video {
-        width: 100%;
-        object-fit: cover;
-        background: black;
-        border-radius: 4px;
-    }
-</style>
+        @media (max-height: 450px) {
+            #controls {
+                display: none; /* Hide controls in landscape mode */
+            }
+            #container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            video {
+                height: 120px;
+            }
+        }
+
+        video {
+            width: 100%;
+            object-fit: cover;
+            background: black;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
 
@@ -116,26 +114,21 @@
 
 <script>
     let videoSources = [];
-
     const container = document.getElementById("container");
 
     function rebuildGrid() {
         container.innerHTML = "";
-
         videoSources.forEach(src => {
             const vid = document.createElement("video");
             vid.src = src;
-
             vid.autoplay = true;
             vid.loop = true;
             vid.muted = true;
             vid.playsInline = true;
-
             container.appendChild(vid);
         });
     }
 
-    // Add Videos Button
     document.getElementById("addBtn").onclick = () => {
         const input = document.createElement("input");
         input.type = "file";
@@ -153,7 +146,6 @@
         input.click();
     };
 
-    // Play All Button (sound fix)
     document.getElementById("playBtn").onclick = () => {
         document.querySelectorAll("video").forEach(v => {
             v.muted = false;
@@ -161,12 +153,10 @@
         });
     };
 
-    // Pause All Button
     document.getElementById("pauseBtn").onclick = () => {
         document.querySelectorAll("video").forEach(v => v.pause());
     };
 
-    // Loop All Button
     document.getElementById("loopBtn").onclick = () => {
         document.querySelectorAll("video").forEach(v => v.loop = true);
     };
@@ -174,4 +164,3 @@
 
 </body>
 </html>
-
