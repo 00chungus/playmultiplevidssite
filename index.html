@@ -1,286 +1,143 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<html lang="en" class="h-full bg-black text-slate-100">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Multi-Video Split Screen Player</title>
+  <title>Minimalist Multi-Video Split Player</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#f0f7ff',
-              500: '#3b82f6',
-              600: '#2563eb',
-              700: '#1d4ed8',
-            }
-          }
-        }
-      }
-    }
-  </script>
   <style>
-    ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0f172a;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 4px;
-    }
-
-    input[type="range"] {
-      -webkit-appearance: none;
-      appearance: none;
-      background: transparent;
+    * {
       touch-action: manipulation;
     }
-    input[type="range"]:focus {
-      outline: none;
-    }
-    input[type="range"]::-webkit-slider-runnable-track {
-      height: 8px;
-      border-radius: 4px;
-      background: #334155;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      height: 18px;
-      width: 18px;
-      border-radius: 50%;
-      background: #3b82f6;
-      margin-top: -5px;
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
-    }
-
-    .glass-card {
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
     body {
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
       padding-left: env(safe-area-inset-left);
       padding-right: env(safe-area-inset-right);
     }
-
-    /* Video rotation scaling container helper */
-    .video-wrapper {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
+    ::-webkit-scrollbar { display: none; }
+    
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+    }
+    input[type="range"]:focus { outline: none; }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.3);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 14px;
+      width: 14px;
+      border-radius: 50%;
+      background: #3b82f6;
+      margin-top: -5px;
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(0,0,0,0.5);
     }
 
-    .video-element {
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
+    .glass-overlay {
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
-    /* When rotated 90 or 270 degrees, adjust scale if needed to fit bounding container */
-    .rotate-90, .rotate-270 {
-      max-width: none !important;
-      max-height: none !important;
+    .video-fit-cover {
+      object-fit: cover !important;
+    }
+    .video-fit-contain {
+      object-fit: contain !important;
     }
   </style>
 </head>
-<body class="h-full flex flex-col font-sans antialiased bg-slate-950 text-slate-100 overflow-hidden select-none">
+<body class="h-full w-full flex flex-col font-sans bg-black text-slate-100 overflow-hidden select-none">
 
-  <header class="bg-slate-900/95 border-b border-slate-800 px-3 py-2 shrink-0 z-20 backdrop-blur">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-      
-      <!-- Top Left: Quick Action File Uploaders -->
-      <div class="flex items-center flex-wrap gap-2">
-        <!-- Add File(s) Direct Upload Button -->
-        <label class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xs font-semibold shadow-md cursor-pointer transition">
-          <i data-lucide="folder-plus" class="w-4 h-4"></i>
-          <span>Add Video File(s)</span>
-          <input type="file" accept="video/*" multiple onchange="handleMultipleFilesUpload(event)" class="hidden">
-        </label>
+  <!-- Floating Top Navigation Bar -->
+  <header class="absolute top-0 left-0 right-0 z-30 p-2 pointer-events-none flex items-center justify-between">
+    <div class="flex items-center space-x-2 pointer-events-auto">
+      <!-- Add Files Button -->
+      <label class="flex items-center space-x-1 px-3 py-1.5 rounded-full bg-blue-600 active:bg-blue-700 text-white text-xs font-semibold shadow-lg cursor-pointer transition">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        <span>Add Video(s)</span>
+        <input type="file" accept="video/*" multiple onchange="handleFilesUpload(event)" class="hidden">
+      </label>
 
-        <!-- Add URL Slot Button -->
-        <button onclick="addVideoSlot()" class="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-medium transition">
-          <i data-lucide="link-2" class="w-3.5 h-3.5 text-blue-400"></i>
-          <span class="hidden sm:inline">Add URL Slot</span>
-        </button>
+      <!-- Layout Selector -->
+      <select id="layoutSelect" onchange="changeLayout(this.value)" class="bg-black/60 border border-white/20 text-xs text-white rounded-full px-2.5 py-1.5 focus:outline-none backdrop-blur">
+        <option value="auto">Auto Grid</option>
+        <option value="vertical">Split Stack</option>
+        <option value="horizontal">Split Side-by-Side</option>
+      </select>
+    </div>
 
-        <!-- Copy Code for GitHub Button -->
-        <button id="copyGithubBtn" onclick="copyCodeToClipboard()" class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs font-medium transition">
-          <i data-lucide="github" class="w-3.5 h-3.5"></i>
-          <span id="copyGithubText">Copy GitHub Code</span>
-        </button>
-      </div>
+    <div class="flex items-center space-x-2 pointer-events-auto">
+      <!-- Master Sync Play/Pause -->
+      <button onclick="toggleMasterPlay()" class="p-2 rounded-full bg-black/60 border border-white/20 active:bg-white/20 text-white backdrop-blur shadow-lg">
+        <i id="masterPlayIcon" data-lucide="play" class="w-4 h-4 fill-current"></i>
+      </button>
 
-      <!-- Top Right: Master Player & Layout Controls -->
-      <div class="flex items-center flex-wrap gap-1.5 sm:gap-2">
-        <!-- iOS Audio Engine Status Badge -->
-        <button id="audioEngineBtn" onclick="activateAudioEngine()" 
-          class="flex items-center space-x-1 px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-semibold transition active:scale-95" 
-          title="Tap to enable audio context on iOS">
-          <span id="audioEngineDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-          <span id="audioEngineText" class="hidden xs:inline">iOS Audio</span>
-        </button>
-
-        <!-- Master Play / Pause -->
-        <button id="masterPlayBtn" onclick="toggleMasterPlay()" class="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 active:bg-emerald-700 text-white font-medium text-xs shadow-md transition">
-          <i id="masterPlayIcon" data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
-          <span id="masterPlayText" class="hidden sm:inline">Play All</span>
-        </button>
-
-        <!-- Master Mute / Unmute -->
-        <button id="masterMuteBtn" onclick="toggleMasterMute()" class="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-slate-800 active:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs transition">
-          <i id="masterMuteIcon" data-lucide="volume-2" class="w-3.5 h-3.5"></i>
-          <span id="masterMuteText" class="hidden sm:inline">Mute All</span>
-        </button>
-
-        <!-- Layout Selector Dropdown -->
-        <div class="flex items-center space-x-1 bg-slate-800/90 border border-slate-700 rounded-lg px-2 py-1">
-          <select id="layoutSelect" onchange="changeLayout(this.value)" class="bg-transparent text-xs text-slate-200 focus:outline-none cursor-pointer">
-            <option value="auto" class="bg-slate-900">Auto Grid</option>
-            <option value="1x1" class="bg-slate-900">1 Screen</option>
-            <option value="1x2" class="bg-slate-900">2 Split</option>
-            <option value="2x2" class="bg-slate-900">4 Grid</option>
-          </select>
-        </div>
-
-        <!-- Master Fullscreen -->
-        <button onclick="toggleMasterFullscreen()" title="Toggle Fullscreen" class="p-1.5 rounded-lg bg-slate-800 active:bg-slate-700 text-slate-300 border border-slate-700 transition">
-          <i id="masterFsIcon" data-lucide="maximize" class="w-4 h-4"></i>
-        </button>
-      </div>
-
+      <!-- Copy GitHub Code Button -->
+      <button id="copyGithubBtn" onclick="copyCodeToClipboard()" class="flex items-center space-x-1 px-2.5 py-1.5 rounded-full bg-amber-500/80 active:bg-amber-600 text-slate-950 font-bold text-xs shadow-lg backdrop-blur">
+        <i data-lucide="code" class="w-3.5 h-3.5"></i>
+        <span id="copyGithubText">Copy Code</span>
+      </button>
     </div>
   </header>
 
-  <main id="playerGridContainer" class="flex-1 p-2 sm:p-4 overflow-y-auto bg-slate-950 min-h-0">
-    <div id="videoGrid" class="grid gap-2.5 sm:gap-4 h-full w-full min-h-[250px]">
-      <!-- Video slots dynamically inserted here -->
+  <!-- Edge-to-Edge Grid Container -->
+  <main class="flex-1 w-full h-full relative overflow-hidden bg-black">
+    <div id="videoGrid" class="w-full h-full grid grid-cols-1 divide-y divide-slate-800/50 sm:divide-y-0 sm:divide-x">
+      <!-- Dynamic Video Slots Inserted Here -->
     </div>
   </main>
 
-  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+  <div id="toastContainer" class="fixed bottom-16 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
   <script>
     const SAMPLE_VIDEOS = [
       "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoylikes.mp4"
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
     ];
 
     let slots = [];
     let nextSlotId = 1;
-    let isMasterMuted = false;
-    let audioCtx = null;
-
-    /* Web Audio API Context for iOS Safari / Brave */
-    function getAudioContext() {
-      if (!audioCtx) {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (AudioContextClass) {
-          audioCtx = new AudioContextClass();
-        }
-      }
-      if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-      updateAudioEngineUI();
-      return audioCtx;
-    }
-
-    function activateAudioEngine() {
-      const ctx = getAudioContext();
-      if (ctx) {
-        ctx.resume().then(() => {
-          updateAudioEngineUI();
-          showToast("Audio Engine Active");
-        });
-      }
-    }
-
-    function updateAudioEngineUI() {
-      const btn = document.getElementById('audioEngineBtn');
-      const dot = document.getElementById('audioEngineDot');
-      const text = document.getElementById('audioEngineText');
-
-      if (!audioCtx) return;
-
-      if (audioCtx.state === 'running') {
-        btn.className = "flex items-center space-x-1 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold";
-        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-        text.textContent = "Audio Ready";
-      } else {
-        btn.className = "flex items-center space-x-1 px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-semibold";
-        dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
-        text.textContent = "iOS Audio";
-      }
-    }
-
-    const unlockAudioOnGesture = () => {
-      activateAudioEngine();
-      window.removeEventListener('touchstart', unlockAudioOnGesture);
-      window.removeEventListener('click', unlockAudioOnGesture);
-    };
-    window.addEventListener('touchstart', unlockAudioOnGesture, { passive: true });
-    window.addEventListener('click', unlockAudioOnGesture, { passive: true });
 
     window.addEventListener('DOMContentLoaded', () => {
-      addVideoSlot(SAMPLE_VIDEOS[0], "Video 1");
-      addVideoSlot(SAMPLE_VIDEOS[1], "Video 2");
+      addVideoSlot(SAMPLE_VIDEOS[0]);
+      addVideoSlot(SAMPLE_VIDEOS[1]);
       updateLayoutClass();
       lucide.createIcons();
     });
 
-    /* Multi-file batch upload handler at top header */
-    function handleMultipleFilesUpload(event) {
+    function handleFilesUpload(event) {
       const files = event.target.files;
       if (!files || files.length === 0) return;
 
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const fileUrl = URL.createObjectURL(file);
-        addVideoSlot(fileUrl, file.name);
+        const fileUrl = URL.createObjectURL(files[i]);
+        addVideoSlot(fileUrl, files[i].name);
       }
-
-      showToast(`Added ${files.length} video file(s)`);
+      showToast(`Added ${files.length} video(s)`);
       event.target.value = '';
     }
 
-    function addVideoSlot(sourceUrl = "", titleOverride = null) {
+    function addVideoSlot(sourceUrl = "", title = "") {
       const slotId = nextSlotId++;
-      const title = titleOverride || `Video ${slots.length + 1}`;
-      const defaultUrl = sourceUrl || SAMPLE_VIDEOS[(slots.length) % SAMPLE_VIDEOS.length];
+      const url = sourceUrl || SAMPLE_VIDEOS[slots.length % SAMPLE_VIDEOS.length];
 
       const slot = {
         id: slotId,
-        title: title,
-        url: defaultUrl,
-        playbackSpeed: 1.0,
-        volume: 1.0,
-        isMuted: false,
-        pan: 0,
-        rotation: 0, // 0, 90, 180, 270 degrees
-        audioNodesInitialized: false,
-        sourceNode: null,
-        pannerNode: null,
+        title: title || `Vid ${slots.length + 1}`,
+        url: url,
+        speed: 1.0,
+        fitMode: 'cover', // 'cover' or 'contain'
+        rotation: 0
       };
 
       slots.push(slot);
@@ -290,168 +147,113 @@
 
     function removeVideoSlot(slotId) {
       if (slots.length <= 1) {
-        showToast("Minimum 1 video slot required", "warning");
+        showToast("Keep at least 1 video open");
         return;
       }
-
-      const cardEl = document.getElementById(`card-${slotId}`);
-      if (cardEl) cardEl.remove();
-
+      const el = document.getElementById(`slot-${slotId}`);
+      if (el) el.remove();
       slots = slots.filter(s => s.id !== slotId);
       updateLayoutClass();
-      showToast("Slot removed");
     }
 
-    function changeLayout(layoutValue) {
-      updateLayoutClass(layoutValue);
-    }
-
-    function updateLayoutClass(forcedLayout = null) {
+    function updateLayoutClass() {
       const grid = document.getElementById('videoGrid');
-      const layout = forcedLayout || document.getElementById('layoutSelect').value;
+      const layout = document.getElementById('layoutSelect').value;
       const count = slots.length;
 
-      grid.className = 'grid gap-2.5 sm:gap-4 h-full w-full min-h-[250px]';
+      grid.className = "w-full h-full grid";
 
-      if (layout === '1x1') {
-        grid.classList.add('grid-cols-1');
-      } else if (layout === '1x2' || layout === '2x2') {
-        grid.classList.add('grid-cols-1', 'sm:grid-cols-2');
+      if (layout === 'vertical') {
+        grid.classList.add(`grid-rows-${Math.min(count, 4)}`, 'grid-cols-1');
+      } else if (layout === 'horizontal') {
+        grid.classList.add('grid-rows-1', `grid-cols-${Math.min(count, 4)}`);
       } else {
-        if (count === 1) grid.classList.add('grid-cols-1');
-        else if (count <= 4) grid.classList.add('grid-cols-1', 'sm:grid-cols-2');
-        else grid.classList.add('grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-3');
+        // Auto Grid
+        if (count === 1) {
+          grid.classList.add('grid-cols-1', 'grid-rows-1');
+        } else if (count === 2) {
+          grid.classList.add('grid-cols-1', 'sm:grid-cols-2', 'grid-rows-2', 'sm:grid-rows-1');
+        } else if (count <= 4) {
+          grid.classList.add('grid-cols-2', 'grid-rows-2');
+        } else {
+          grid.classList.add('grid-cols-2', 'sm:grid-cols-3');
+        }
       }
     }
 
     function renderVideoCard(slot) {
       const grid = document.getElementById('videoGrid');
       const card = document.createElement('div');
-      card.id = `card-${slot.id}`;
-      card.className = "glass-card rounded-xl overflow-hidden flex flex-col shadow-lg border border-slate-800 relative";
+      card.id = `slot-${slot.id}`;
+      card.className = "relative w-full h-full bg-black flex items-center justify-center overflow-hidden group";
 
       card.innerHTML = `
-        <!-- Card Top Header -->
-        <div class="px-2.5 py-1.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between gap-2 shrink-0">
-          <div class="flex items-center space-x-1.5 truncate">
-            <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
-            <input type="text" value="${slot.title}" onchange="updateSlotTitle(${slot.id}, this.value)" 
-              class="bg-transparent text-xs font-semibold text-slate-200 hover:bg-slate-800/60 focus:bg-slate-800 px-1 py-0.5 rounded outline-none w-28 sm:w-36 transition" />
-          </div>
+        <!-- Video Canvas/Tag -->
+        <video id="vid-${slot.id}" src="${slot.url}" loop crossorigin="anonymous"
+          playsinline webkit-playsinline
+          onloadedmetadata="onVideoLoaded(${slot.id})"
+          ontimeupdate="onVideoTimeUpdate(${slot.id})"
+          onclick="togglePlaySlot(${slot.id})"
+          class="w-full h-full video-fit-cover transition-transform duration-300 cursor-pointer">
+        </video>
 
-          <div class="flex items-center space-x-1">
-            <!-- Rotate Video Button -->
-            <button onclick="rotateVideoSlot(${slot.id})" title="Rotate 90° (Landscape/Portrait)" class="p-1 hover:bg-blue-600/20 text-slate-300 hover:text-blue-400 rounded transition flex items-center space-x-0.5 text-[10px]">
-              <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
-              <span id="rotDeg-${slot.id}" class="font-mono text-[10px] hidden xs:inline">0°</span>
-            </button>
-            <button onclick="toggleSlotFullscreen(${slot.id})" title="Fullscreen Tile" class="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition">
-              <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
-            </button>
-            <button onclick="removeVideoSlot(${slot.id})" title="Remove Slot" class="p-1 hover:bg-rose-500/20 rounded text-slate-400 hover:text-rose-400 transition">
-              <i data-lucide="x" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- Video Pane Wrapper for Rotation -->
-        <div id="videoContainer-${slot.id}" class="relative flex-1 bg-black flex items-center justify-center min-h-[180px] overflow-hidden group">
-          <div class="video-wrapper">
-            <video id="vid-${slot.id}" src="${slot.url}" loop crossorigin="anonymous"
-              playsinline webkit-playsinline
-              onplay="onVideoPlayStateChange(${slot.id})" 
-              onpause="onVideoPlayStateChange(${slot.id})"
-              onloadedmetadata="onVideoLoaded(${slot.id})"
-              ontimeupdate="onVideoTimeUpdate(${slot.id})"
-              onclick="togglePlaySlot(${slot.id})"
-              class="video-element w-full h-full object-contain max-h-[50vh] cursor-pointer">
-            </video>
-          </div>
-
-          <!-- Quick Play Overlay -->
-          <div id="playOverlay-${slot.id}" onclick="togglePlaySlot(${slot.id})" 
-            class="absolute inset-0 bg-black/30 opacity-0 active:opacity-100 hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
-            <div class="p-2.5 bg-blue-600/90 text-white rounded-full shadow-lg">
-              <i id="overlayPlayIcon-${slot.id}" data-lucide="play" class="w-5 h-5 fill-current"></i>
-            </div>
-          </div>
-        </div>
-
-        <!-- Controls Bar -->
-        <div class="p-2.5 bg-slate-900/90 flex flex-col gap-2 shrink-0 border-t border-slate-800">
+        <!-- Top Right Mini Slot Actions -->
+        <div class="absolute top-3 right-3 z-10 flex items-center space-x-1.5 opacity-80 hover:opacity-100 transition">
+          <!-- Fit Cover/Contain Toggle -->
+          <button onclick="toggleFitMode(${slot.id})" title="Toggle Fill/Fit Screen" class="p-1.5 rounded-full glass-overlay text-white border border-white/20 active:scale-95">
+            <i id="fitIcon-${slot.id}" data-lucide="maximize" class="w-3.5 h-3.5"></i>
+          </button>
           
-          <!-- Seek Track Bar -->
-          <div class="flex items-center gap-2">
-            <span id="timeCurrent-${slot.id}" class="text-[10px] font-mono text-slate-400 w-8 text-right">0:00</span>
+          <!-- Rotate 90deg -->
+          <button onclick="rotateVideo(${slot.id})" title="Rotate 90°" class="p-1.5 rounded-full glass-overlay text-white border border-white/20 active:scale-95">
+            <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+          </button>
+
+          <!-- Remove Slot -->
+          <button onclick="removeVideoSlot(${slot.id})" title="Remove" class="p-1.5 rounded-full glass-overlay text-rose-400 border border-white/20 active:scale-95">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Floating Bottom Overlay Controls -->
+        <div class="absolute bottom-2 left-2 right-2 z-10 glass-overlay rounded-2xl p-2 flex flex-col gap-1 border border-white/10 shadow-2xl">
+          
+          <!-- Seek Timeline Slider -->
+          <div class="flex items-center gap-2 px-1">
+            <span id="timeCur-${slot.id}" class="text-[10px] font-mono text-slate-300">0:00</span>
             <input type="range" id="seek-${slot.id}" min="0" max="100" value="0" step="0.1"
-              oninput="seekVideo(${slot.id}, this.value)"
-              class="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-            <span id="timeDuration-${slot.id}" class="text-[10px] font-mono text-slate-400 w-8">0:00</span>
+              oninput="seekVideo(${slot.id}, this.value)" class="flex-1 h-1">
+            <span id="timeDur-${slot.id}" class="text-[10px] font-mono text-slate-400">0:00</span>
           </div>
 
-          <!-- Controls Layout -->
-          <div class="flex flex-wrap items-center justify-between gap-1.5 text-xs">
-            
-            <div class="flex items-center space-x-1.5">
+          <!-- Controls Button Row -->
+          <div class="flex items-center justify-between gap-1 pt-0.5">
+            <div class="flex items-center space-x-1">
               <!-- Play/Pause -->
-              <button id="btnPlay-${slot.id}" onclick="togglePlaySlot(${slot.id})" class="p-1.5 rounded-lg bg-blue-600/20 active:bg-blue-600/40 text-blue-400 border border-blue-500/30 transition">
-                <i id="iconPlay-${slot.id}" data-lucide="play" class="w-4 h-4 fill-current"></i>
+              <button onclick="togglePlaySlot(${slot.id})" class="p-2 rounded-xl bg-blue-600 active:bg-blue-700 text-white font-bold transition">
+                <i id="btnPlayIcon-${slot.id}" data-lucide="play" class="w-4 h-4 fill-current"></i>
               </button>
 
-              <!-- Mute & Volume -->
-              <div class="flex items-center space-x-1 bg-slate-800/80 px-1.5 py-1 rounded-lg border border-slate-700">
-                <button id="btnMute-${slot.id}" onclick="toggleMuteSlot(${slot.id})" class="text-slate-400 active:text-white transition">
-                  <i id="iconMute-${slot.id}" data-lucide="volume-2" class="w-3.5 h-3.5"></i>
-                </button>
-                <input type="range" id="vol-${slot.id}" min="0" max="1" step="0.05" value="1"
-                  oninput="changeVolumeSlot(${slot.id}, this.value)"
-                  class="w-12 sm:w-16 h-1">
-              </div>
-
-              <!-- Stereo Audio Panner -->
-              <div class="flex items-center bg-slate-800/80 px-1.5 py-1 rounded-lg border border-slate-700" title="Ear Channel Panning">
-                <i data-lucide="headphones" class="w-3.5 h-3.5 text-slate-400 mr-1"></i>
-                <select id="pan-${slot.id}" onchange="changePanSlot(${slot.id}, this.value)" class="bg-transparent text-[11px] text-slate-300 focus:outline-none cursor-pointer">
-                  <option value="-1" class="bg-slate-900">Left</option>
-                  <option value="0" selected class="bg-slate-900">Both</option>
-                  <option value="1" class="bg-slate-900">Right</option>
-                </select>
-              </div>
+              <!-- Mute Button -->
+              <button onclick="toggleMuteSlot(${slot.id})" class="p-2 rounded-xl bg-white/10 active:bg-white/20 text-slate-200">
+                <i id="btnMuteIcon-${slot.id}" data-lucide="volume-2" class="w-4 h-4"></i>
+              </button>
             </div>
 
-            <!-- Custom Speed Dropdown including 0.2x, 0.3x, 0.4x, 0.5x, 0.6x -->
-            <div class="flex items-center space-x-1">
-              <i data-lucide="gauge" class="w-3.5 h-3.5 text-slate-400"></i>
-              <select id="speed-${slot.id}" onchange="changeSpeedSlot(${slot.id}, this.value)" 
-                class="bg-slate-800 border border-slate-700 text-slate-200 text-[11px] rounded-lg px-1.5 py-1 focus:outline-none cursor-pointer">
-                <option value="0.2">0.2x</option>
-                <option value="0.3">0.3x</option>
-                <option value="0.4">0.4x</option>
-                <option value="0.5">0.5x</option>
-                <option value="0.6">0.6x</option>
-                <option value="1.0" selected>1.0x</option>
-                <option value="1.25">1.25x</option>
-                <option value="1.5">1.5x</option>
-                <option value="2.0">2.0x</option>
+            <!-- Speed Selectors (0.2x, 0.3x, 0.4x, 0.5x, 0.6x, 1x) -->
+            <div class="flex items-center space-x-1 bg-black/40 border border-white/10 px-2 py-1 rounded-xl">
+              <i data-lucide="gauge" class="w-3.5 h-3.5 text-blue-400"></i>
+              <select id="speed-${slot.id}" onchange="changeSpeedSlot(${slot.id}, this.value)" class="bg-transparent text-xs text-white focus:outline-none cursor-pointer font-medium">
+                <option value="0.2" class="bg-slate-900">0.2x</option>
+                <option value="0.3" class="bg-slate-900">0.3x</option>
+                <option value="0.4" class="bg-slate-900">0.4x</option>
+                <option value="0.5" class="bg-slate-900">0.5x</option>
+                <option value="0.6" class="bg-slate-900">0.6x</option>
+                <option value="1.0" selected class="bg-slate-900">1.0x</option>
+                <option value="1.5" class="bg-slate-900">1.5x</option>
+                <option value="2.0" class="bg-slate-900">2.0x</option>
               </select>
             </div>
-
-          </div>
-
-          <!-- Video Source Loader Input -->
-          <div class="flex items-center gap-1 pt-1 border-t border-slate-800/80">
-            <input type="text" id="urlInput-${slot.id}" value="${slot.url}" placeholder="Video URL..."
-              class="flex-1 bg-slate-950 border border-slate-800 focus:border-blue-500 rounded px-2 py-0.5 text-[10px] text-slate-300 focus:outline-none">
-            
-            <button onclick="loadUrlSlot(${slot.id})" class="px-2 py-0.5 bg-slate-800 active:bg-slate-700 text-slate-300 rounded text-[10px] font-medium">
-              Load URL
-            </button>
-
-            <label class="px-2 py-0.5 bg-slate-800 active:bg-slate-700 text-slate-300 rounded text-[10px] font-medium cursor-pointer flex items-center space-x-1">
-              <i data-lucide="upload" class="w-3 h-3"></i>
-              <span>File</span>
-              <input type="file" accept="video/*" onchange="loadFileSlot(${slot.id}, event)" class="hidden">
-            </label>
           </div>
 
         </div>
@@ -461,199 +263,98 @@
       lucide.createIcons();
     }
 
-    function rotateVideoSlot(slotId) {
-      const slot = slots.find(s => s.id === slotId);
-      const vid = document.getElementById(`vid-${slotId}`);
-      const degLabel = document.getElementById(`rotDeg-${slotId}`);
-      if (!slot || !vid) return;
-
-      slot.rotation = (slot.rotation + 90) % 360;
-      
-      // Apply CSS rotation transform with responsive aspect handling
-      if (slot.rotation === 90 || slot.rotation === 270) {
-        vid.style.transform = `rotate(${slot.rotation}deg) scale(0.75)`;
-      } else {
-        vid.style.transform = `rotate(${slot.rotation}deg) scale(1)`;
-      }
-
-      if (degLabel) degLabel.textContent = `${slot.rotation}°`;
-      showToast(`Rotated ${slot.rotation}°`);
-    }
-
-    function updateSlotTitle(slotId, newTitle) {
-      const slot = slots.find(s => s.id === slotId);
-      if (slot) slot.title = newTitle;
-    }
-
-    function initWebAudioForSlot(slot) {
-      if (slot.audioNodesInitialized) return;
-
-      try {
-        const vid = document.getElementById(`vid-${slot.id}`);
-        const context = getAudioContext();
-        if (!context) return;
-
-        const source = context.createMediaElementSource(vid);
-        
-        if (context.createStereoPanner) {
-          const panner = context.createStereoPanner();
-          panner.pan.value = slot.pan;
-          source.connect(panner);
-          panner.connect(context.destination);
-          slot.pannerNode = panner;
-        } else {
-          source.connect(context.destination);
-        }
-
-        slot.sourceNode = source;
-        slot.audioNodesInitialized = true;
-      } catch (err) {}
-    }
-
     function togglePlaySlot(slotId) {
-      const slot = slots.find(s => s.id === slotId);
       const vid = document.getElementById(`vid-${slotId}`);
+      const icon = document.getElementById(`btnPlayIcon-${slotId}`);
       if (!vid) return;
-
-      activateAudioEngine();
-      initWebAudioForSlot(slot);
 
       if (vid.paused) {
-        vid.play().catch(e => showToast("Tap video to enable playback", "warning"));
+        vid.play().then(() => {
+          if (icon) icon.setAttribute('data-lucide', 'pause');
+          lucide.createIcons();
+        }).catch(() => showToast("Tap to play"));
       } else {
         vid.pause();
-      }
-    }
-
-    function onVideoPlayStateChange(slotId) {
-      const vid = document.getElementById(`vid-${slotId}`);
-      const playIcon = document.getElementById(`iconPlay-${slotId}`);
-      const overlayIcon = document.getElementById(`overlayPlayIcon-${slotId}`);
-      if (!vid) return;
-
-      const isPaused = vid.paused;
-      if (playIcon) playIcon.setAttribute('data-lucide', isPaused ? 'play' : 'pause');
-      if (overlayIcon) overlayIcon.setAttribute('data-lucide', isPaused ? 'play' : 'pause');
-      lucide.createIcons();
-      updateMasterPlayButtonState();
-    }
-
-    function toggleMuteSlot(slotId) {
-      const slot = slots.find(s => s.id === slotId);
-      const vid = document.getElementById(`vid-${slotId}`);
-      const iconMute = document.getElementById(`iconMute-${slotId}`);
-      if (!vid) return;
-
-      slot.isMuted = !slot.isMuted;
-      vid.muted = slot.isMuted;
-
-      if (iconMute) {
-        iconMute.setAttribute('data-lucide', slot.isMuted ? 'volume-x' : 'volume-2');
+        if (icon) icon.setAttribute('data-lucide', 'play');
         lucide.createIcons();
       }
     }
 
-    function changeVolumeSlot(slotId, val) {
-      const slot = slots.find(s => s.id === slotId);
+    function toggleMuteSlot(slotId) {
       const vid = document.getElementById(`vid-${slotId}`);
+      const icon = document.getElementById(`btnMuteIcon-${slotId}`);
       if (!vid) return;
 
-      slot.volume = parseFloat(val);
-      vid.volume = slot.volume;
+      vid.muted = !vid.muted;
+      if (icon) icon.setAttribute('data-lucide', vid.muted ? 'volume-x' : 'volume-2');
+      lucide.createIcons();
     }
 
-    function changePanSlot(slotId, val) {
+    function toggleFitMode(slotId) {
       const slot = slots.find(s => s.id === slotId);
-      const panVal = parseFloat(val);
-      slot.pan = panVal;
+      const vid = document.getElementById(`vid-${slotId}`);
+      const fitIcon = document.getElementById(`fitIcon-${slotId}`);
+      if (!slot || !vid) return;
 
-      activateAudioEngine();
-      initWebAudioForSlot(slot);
-
-      if (slot.pannerNode && audioCtx) {
-        slot.pannerNode.pan.setValueAtTime(panVal, audioCtx.currentTime);
+      if (slot.fitMode === 'cover') {
+        slot.fitMode = 'contain';
+        vid.className = vid.className.replace('video-fit-cover', 'video-fit-contain');
+        if (fitIcon) fitIcon.setAttribute('data-lucide', 'minimize');
+        showToast("Fit Mode: Original Aspect");
+      } else {
+        slot.fitMode = 'cover';
+        vid.className = vid.className.replace('video-fit-contain', 'video-fit-cover');
+        if (fitIcon) fitIcon.setAttribute('data-lucide', 'maximize');
+        showToast("Fill Mode: Edge-to-Edge");
       }
+      lucide.createIcons();
+    }
+
+    function rotateVideo(slotId) {
+      const slot = slots.find(s => s.id === slotId);
+      const vid = document.getElementById(`vid-${slotId}`);
+      if (!slot || !vid) return;
+
+      slot.rotation = (slot.rotation + 90) % 360;
+      vid.style.transform = `rotate(${slot.rotation}deg)`;
+      showToast(`Rotated ${slot.rotation}°`);
     }
 
     function changeSpeedSlot(slotId, val) {
-      const slot = slots.find(s => s.id === slotId);
       const vid = document.getElementById(`vid-${slotId}`);
       const speed = parseFloat(val);
-      
-      slot.playbackSpeed = speed;
       if (vid) {
         vid.playbackRate = speed;
-        showToast(`${speed}x speed`);
+        showToast(`Speed set to ${speed}x`);
       }
     }
 
     function onVideoLoaded(slotId) {
       const vid = document.getElementById(`vid-${slotId}`);
-      const durLabel = document.getElementById(`timeDuration-${slotId}`);
-      const slot = slots.find(s => s.id === slotId);
-
-      if (vid && durLabel) {
-        durLabel.textContent = formatTime(vid.duration);
-        vid.playbackRate = slot.playbackSpeed;
-      }
+      const dur = document.getElementById(`timeDur-${slotId}`);
+      const speedSelect = document.getElementById(`speed-${slotId}`);
+      if (vid && dur) dur.textContent = formatTime(vid.duration);
+      if (vid && speedSelect) vid.playbackRate = parseFloat(speedSelect.value);
     }
 
     function onVideoTimeUpdate(slotId) {
       const vid = document.getElementById(`vid-${slotId}`);
       const seek = document.getElementById(`seek-${slotId}`);
-      const curLabel = document.getElementById(`timeCurrent-${slotId}`);
-
-      if (vid && seek && curLabel && !isNaN(vid.duration)) {
+      const cur = document.getElementById(`timeCur-${slotId}`);
+      if (vid && seek && cur && !isNaN(vid.duration)) {
         seek.value = (vid.currentTime / vid.duration) * 100;
-        curLabel.textContent = formatTime(vid.currentTime);
+        cur.textContent = formatTime(vid.currentTime);
       }
     }
 
-    function seekVideo(slotId, percent) {
+    function seekVideo(slotId, val) {
       const vid = document.getElementById(`vid-${slotId}`);
       if (vid && !isNaN(vid.duration)) {
-        vid.currentTime = (percent / 100) * vid.duration;
+        vid.currentTime = (val / 100) * vid.duration;
       }
     }
 
-    function loadUrlSlot(slotId) {
-      const urlInput = document.getElementById(`urlInput-${slotId}`);
-      const vid = document.getElementById(`vid-${slotId}`);
-      const slot = slots.find(s => s.id === slotId);
-
-      if (urlInput && urlInput.value.trim() !== '') {
-        const url = urlInput.value.trim();
-        slot.url = url;
-        vid.src = url;
-        vid.load();
-        showToast(`Loaded new video URL`);
-      }
-    }
-
-    function loadFileSlot(slotId, event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const fileUrl = URL.createObjectURL(file);
-      const vid = document.getElementById(`vid-${slotId}`);
-      const urlInput = document.getElementById(`urlInput-${slotId}`);
-      const slot = slots.find(s => s.id === slotId);
-
-      slot.url = fileUrl;
-      if (vid) {
-        vid.src = fileUrl;
-        vid.load();
-      }
-      if (urlInput) {
-        urlInput.value = file.name;
-      }
-      showToast(`Loaded "${file.name}"`);
-    }
-
-    /* Master Controllers */
     function toggleMasterPlay() {
-      activateAudioEngine();
-
       const allPaused = slots.every(s => {
         const v = document.getElementById(`vid-${s.id}`);
         return v ? v.paused : true;
@@ -661,147 +362,71 @@
 
       slots.forEach(s => {
         const v = document.getElementById(`vid-${s.id}`);
+        const icon = document.getElementById(`btnPlayIcon-${s.id}`);
         if (v) {
-          initWebAudioForSlot(s);
-          if (allPaused) v.play().catch(() => {});
-          else v.pause();
+          if (allPaused) {
+            v.play();
+            if (icon) icon.setAttribute('data-lucide', 'pause');
+          } else {
+            v.pause();
+            if (icon) icon.setAttribute('data-lucide', 'play');
+          }
         }
       });
 
-      updateMasterPlayButtonState();
-    }
-
-    function updateMasterPlayButtonState() {
-      const anyPlaying = slots.some(s => {
-        const v = document.getElementById(`vid-${s.id}`);
-        return v ? !v.paused : false;
-      });
-
-      const icon = document.getElementById('masterPlayIcon');
-      const text = document.getElementById('masterPlayText');
-
-      if (icon) icon.setAttribute('data-lucide', anyPlaying ? 'pause' : 'play');
-      if (text) text.textContent = anyPlaying ? 'Pause All' : 'Play All';
+      const masterIcon = document.getElementById('masterPlayIcon');
+      if (masterIcon) masterIcon.setAttribute('data-lucide', allPaused ? 'pause' : 'play');
       lucide.createIcons();
     }
 
-    function toggleMasterMute() {
-      isMasterMuted = !isMasterMuted;
-
-      slots.forEach(s => {
-        const v = document.getElementById(`vid-${s.id}`);
-        const iconMute = document.getElementById(`iconMute-${s.id}`);
-        if (v) {
-          s.isMuted = isMasterMuted;
-          v.muted = isMasterMuted;
-          if (iconMute) iconMute.setAttribute('data-lucide', isMasterMuted ? 'volume-x' : 'volume-2');
-        }
-      });
-
-      const masterIcon = document.getElementById('masterMuteIcon');
-      const masterText = document.getElementById('masterMuteText');
-      if (masterIcon) masterIcon.setAttribute('data-lucide', isMasterMuted ? 'volume-x' : 'volume-2');
-      if (masterText) masterText.textContent = isMasterMuted ? 'Unmute All' : 'Mute All';
-
-      lucide.createIcons();
-      showToast(isMasterMuted ? "Muted All" : "Unmuted All");
-    }
-
-    function toggleSlotFullscreen(slotId) {
-      const vid = document.getElementById(`vid-${slotId}`);
-      const container = document.getElementById(`videoContainer-${slotId}`);
-      if (!vid) return;
-
-      if (container && container.requestFullscreen) {
-        container.requestFullscreen();
-      } else if (vid.webkitEnterFullscreen) {
-        vid.webkitEnterFullscreen();
-      }
-    }
-
-    function toggleMasterFullscreen() {
-      const gridContainer = document.getElementById('playerGridContainer');
-      if (!gridContainer) return;
-
-      if (!document.fullscreenElement) {
-        if (gridContainer.requestFullscreen) gridContainer.requestFullscreen();
-        else if (gridContainer.webkitRequestFullscreen) gridContainer.webkitRequestFullscreen();
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-      }
+    function changeLayout(val) {
+      updateLayoutClass();
     }
 
     function copyCodeToClipboard() {
-      const fullHtmlCode = document.documentElement.outerHTML;
-      const formattedCode = "<!DOCTYPE html>\n" + fullHtmlCode;
+      const formattedCode = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      const textBtn = document.getElementById('copyGithubText');
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(formattedCode).then(() => {
-          notifyCopiedSuccess();
-        }).catch(() => {
-          fallbackCopyText(formattedCode);
+          if (textBtn) textBtn.textContent = "Copied!";
+          showToast("Code copied to clipboard!");
+          setTimeout(() => { if (textBtn) textBtn.textContent = "Copy Code"; }, 2500);
         });
       } else {
-        fallbackCopyText(formattedCode);
-      }
-    }
-
-    function fallbackCopyText(text) {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      textArea.style.position = "fixed";
-      textArea.style.opacity = "0";
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      try {
+        const ta = document.createElement("textarea");
+        ta.value = formattedCode;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
         document.execCommand('copy');
-        notifyCopiedSuccess();
-      } catch (err) {
-        showToast("Failed to copy code automatically", "warning");
+        document.body.removeChild(ta);
+        if (textBtn) textBtn.textContent = "Copied!";
+        showToast("Code copied to clipboard!");
+        setTimeout(() => { if (textBtn) textBtn.textContent = "Copy Code"; }, 2500);
       }
-      document.body.removeChild(textArea);
     }
 
-    function notifyCopiedSuccess() {
-      const text = document.getElementById('copyGithubText');
-      if (text) text.textContent = "Copied!";
-      showToast("Entire HTML code copied to clipboard!");
-      setTimeout(() => {
-        if (text) text.textContent = "Copy GitHub Code";
-      }, 3000);
+    function formatTime(sec) {
+      if (isNaN(sec)) return "0:00";
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
     }
 
-    function formatTime(seconds) {
-      if (isNaN(seconds) || seconds === Infinity) return "0:00";
-      const mins = Math.floor(seconds / 60);
-      const secs = Math.floor(seconds % 60);
-      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-    }
-
-    function showToast(message, type = "info") {
+    function showToast(msg) {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
-      
-      const bgColor = type === "warning" ? "bg-amber-900/90 border-amber-700" : "bg-slate-800/90 border-slate-700";
-
-      toast.className = `${bgColor} text-slate-100 text-xs px-3 py-1.5 rounded-lg border shadow-lg backdrop-blur flex items-center space-x-1.5 transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto`;
-      toast.innerHTML = `
-        <i data-lucide="info" class="w-3.5 h-3.5 text-blue-400"></i>
-        <span>${message}</span>
-      `;
-
+      toast.className = "bg-slate-900/90 text-white text-xs px-3 py-1.5 rounded-full border border-white/20 shadow-xl backdrop-blur transition-all duration-300 opacity-0 transform translate-y-2";
+      toast.textContent = msg;
       container.appendChild(toast);
-      lucide.createIcons();
-
-      requestAnimationFrame(() => {
-        toast.classList.remove('translate-y-2', 'opacity-0');
-      });
-
+      requestAnimationFrame(() => toast.classList.remove('opacity-0', 'translate-y-2'));
       setTimeout(() => {
         toast.classList.add('opacity-0', 'translate-y-2');
         setTimeout(() => toast.remove(), 300);
-      }, 2000);
+      }, 1800);
     }
   </script>
 </body>
